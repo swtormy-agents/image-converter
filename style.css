@@ -58,9 +58,12 @@ input[type=range]:disabled{opacity:.4;cursor:not-allowed}
 .btn:disabled{opacity:1}
 .btn-primary:disabled{background:#c9d3e6;color:#2b3445}
 .btn-secondary:disabled,.btn-ghost:disabled{background:#f2f4f7;color:#4a5263;border-color:#d5dae2}
-.file{grid-template-columns:minmax(0,1fr) 7ch minmax(170px,auto) 32px}
-.rm{width:32px;height:32px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer}
+.file{grid-template-columns:minmax(0,1fr) 7ch minmax(170px,auto) 44px}
+.rm{width:44px;height:44px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer}
 .rm:hover{background:#f2f4f7;color:var(--err)}
 .notes{margin:0 0 8px}.notes summary{cursor:pointer;padding:10px 14px;background:var(--note);border:1px solid var(--note-line);border-radius:8px;font-size:14px}
 .notes[open] summary{border-radius:8px 8px 0 0}
-@media (max-width:640px){.file{grid-template-columns:minmax(0,1fr) auto 32px;grid-template-areas:"n m r" "s s s"}.rm{grid-area:r}.btn{min-height:44px}select,input[type=range]{min-height:44px}}
+@media (max-width:640px){.file{grid-template-columns:minmax(0,1fr) auto 44px;grid-template-areas:"n m r" "s s s"}.rm{grid-area:r}.btn{min-height:44px}select,input[type=range]{min-height:44px}}
+.drop-note{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.heic-note{color:var(--muted);font-weight:400}
+@media (max-width:640px){.rm{width:44px;height:44px;min-width:44px;min-height:44px}}

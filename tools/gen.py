@@ -24,7 +24,7 @@ def head(path,title,desc,out=None):
 <header><a class="brand" href="./">Local Image Converter</a><nav>{nav}</nav></header><main>
 '''
 TOOL='''<section class="tool" aria-label="Converter">
-<div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose files or drop here" aria-describedby="drop-hint"><p class="drop-title">Drop images here</p><p id="drop-hint" class="drop-hint">or <span class="link">browse files</span> &middot; HEIC, HEIF, WebP, AVIF, PNG, JPEG</p></div>
+<div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose files or drop here" aria-describedby="drop-hint"><p class="drop-title">Drop images here</p><p id="drop-hint" class="drop-hint">or <span class="link">browse files</span> &middot; HEIC, HEIF, WebP, AVIF, PNG, JPEG</p><p class="drop-note">HEIC/HEIF: only the first image in a file is converted. EXIF and orientation are dropped.</p></div>
 <input id="files" class="visually-hidden" type="file" tabindex="-1" aria-hidden="true" multiple accept="image/*,.heic,.heif,.avif,.webp">
 <div class="opts">
 <label class="field"><span class="field-label">Output format</span><select id="fmt"></select></label>
@@ -38,7 +38,7 @@ TOOL='''<section class="tool" aria-label="Converter">
 <noscript>This converter needs JavaScript; it runs only on your device.</noscript>
 <script src="config.js"></script><script src="zip.js"></script><script src="app.js"></script>
 '''
-NOTES_BOX='<details class="notes"><summary><b>Limitations and browser support</b> &middot; Safari/iOS not fully tested yet; EXIF and orientation are dropped</summary>'+LIMITS+SAFARI+'</details>'
+NOTES_BOX='<details class="notes"><summary><b>Limitations and browser support</b> &middot; only the first image in a HEIC/HEIF file is converted; EXIF and orientation are dropped; Safari/iOS not fully tested yet</summary>'+LIMITS+SAFARI+'</details>'
 PAIRLINKS='<section class="pairs"><h2>Popular conversions</h2><ul>'+''.join(f'<li><a href="{a}-to-{b}.html">{A} to {B}</a></li>' for a,b,A,B,_ in PAIRS)+'</ul></section>'
 pages=[]
 def write(path,content): open(path,'w').write(content); pages.append(path)

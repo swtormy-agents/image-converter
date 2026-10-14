@@ -61,7 +61,7 @@ function kb(n){return n<1024*1024?Math.max(1,Math.round(n/1024))+' KB':(n/104857
 function add(files){
   for(const f of files){const li=document.createElement('li');li.className='file';
     li.innerHTML='<span class="file-name"></span><span class="file-meta"></span><span class="s file-status">Ready</span><button class="rm" type="button" aria-label="Remove">&times;</button>';
-    li.querySelector('.file-name').textContent=f.name;li.querySelector('.file-meta').textContent=kb(f.size);li.title=f.name;
+    li.querySelector('.file-name').textContent=f.name;li.querySelector('.file-meta').textContent=kb(f.size);if(isHeif(f)){const st=li.querySelector('.file-status');st.textContent='Ready · HEIC: first image only';}li.title=f.name;
     const it={file:f,li,out:null};li.querySelector('.rm').addEventListener('click',()=>{if(it.url)URL.revokeObjectURL(it.url);li.remove();items=items.filter(x=>x!==it);btn.disabled=clearBtn.disabled=!items.length;zipBtn.disabled=items.filter(x=>x.out).length<2;syncHint();});li.querySelector('.rm').setAttribute('aria-label','Remove '+f.name);list.appendChild(li);items.push(it);}
   btn.disabled=!items.length;clearBtn.disabled=!items.length;
   if(items.length)status.textContent=items.length+(items.length===1?' image':' images')+' in the list.';syncHint();
@@ -75,13 +75,13 @@ drop.addEventListener('drop',e=>add(e.dataTransfer.files));
 const pick=()=>$('files').click();
 drop.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(!e.repeat)pick();}else if(e.key===' '||e.key==='Spacebar'){e.preventDefault();}});
 drop.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Spacebar'){e.preventDefault();pick();}});
-drop.addEventListener('click',pick);
+drop.addEventListener('click',e=>{if(e.target&&e.target.id==='files')return;pick();});
 btn.addEventListener('click',async()=>{
   btn.disabled=true;clearBtn.disabled=true;prog.hidden=false;prog.max=items.length;prog.value=0;const type=fmtSel.value,ext=OUT.find(o=>o[0]===type)[2],qual=q.value/100;let ok=0;
   for(let i=0;i<items.length;i++){const it=items[i],s=it.li.querySelector('.s');status.textContent='Converting '+(i+1)+' of '+items.length+'…';s.textContent='Converting…';s.className='s file-status is-working';
     try{const b=await convert(it,type,qual);const name=it.file.name.replace(/\.[^.]+$/,'')+'.'+ext;it.out={name,blob:b};
       if(it.url)URL.revokeObjectURL(it.url);it.url=URL.createObjectURL(b);
-      s.innerHTML='';const a=document.createElement('a');a.href=it.url;a.download=name;a.className='dl';a.textContent='Download '+ext.toUpperCase()+' ('+kb(b.size)+')';s.className='s file-status is-done';s.appendChild(a);ok++;
+      s.innerHTML='';const a=document.createElement('a');a.href=it.url;a.download=name;a.className='dl';if(isHeif(it.file)){const h=document.createElement('span');h.className='heic-note';h.textContent='First image only · ';s.textContent='';s.appendChild(h);}a.textContent='Download '+ext.toUpperCase()+' ('+kb(b.size)+')';s.className='s file-status is-done';s.appendChild(a);ok++;
     }catch(e){it.out=null;s.textContent=e.friendly||"Couldn't read this file. Is it a supported image (HEIC, HEIF, WebP, AVIF, PNG, JPEG)?";s.className='s file-status err';}
     prog.value=i+1;
   }
