@@ -84,3 +84,36 @@ input[type=range]:disabled{opacity:.4;cursor:not-allowed}
 .hdr-right{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px}
 .theme-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .theme-hint{display:inline-block;box-sizing:border-box;min-height:24px;padding:4px 0;font-size:12px;line-height:16px;color:var(--muted);text-decoration:underline;text-underline-offset:2px}.theme-hint:hover{color:var(--accent)}
+/* ===== Redesign (Olivia Bennett mockups, 2026-10) ===== */
+:root,:root[data-theme=light]{--bg:#f4f5f8;--line:#d9dde5;--chip-bg:#e9ebf0;--chip-fg:#3a4252;--pill-ok-bg:#e3eafc;--pill-ok-fg:#1c449c;--pill-warn-bg:#fdf1c7;--pill-warn-fg:#5c4500;--pill-err-bg:#fde7e5;--pill-err-fg:#8f1d14;--logo-bg:#1c449c;--logo-fg:#fff}
+:root[data-theme=dark]{--bg:#111318;--card:#181b22;--line:#2c313c;--chip-bg:#252a35;--chip-fg:#c9cdd6;--pill-ok-bg:#1d2a4a;--pill-ok-fg:#a9c2ff;--pill-warn-bg:#3a3012;--pill-warn-fg:#f2d27a;--pill-err-bg:#3d1c1a;--pill-err-fg:#ffb3ad;--logo-bg:#7aa2ff;--logo-fg:#0f1115}
+:root{--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+header{background:transparent;border-bottom:0;padding-top:28px;padding-bottom:8px;align-items:flex-start}
+.brand{display:inline-flex;align-items:center;gap:10px;font-size:17px;font-weight:600;min-height:36px}
+.brand::before{content:"L";display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--logo-bg);color:var(--logo-fg);font-size:15px;font-weight:700;flex:none}
+.theme-field select{border-radius:10px;padding:0 12px;font-weight:600}
+main{padding-top:16px}
+.tool{background:transparent;border:0;padding:0;box-shadow:none}
+.drop{background:var(--card);border-radius:12px;padding:40px 20px}
+.chips{display:flex;justify-content:center;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.chip{font:600 12px/1 var(--mono);background:var(--chip-bg);color:var(--chip-fg);padding:5px 7px;border-radius:5px;letter-spacing:.02em}
+.drop-title{font-size:22px;font-weight:650;margin:0 0 6px}
+.drop-hint{font-size:15px}
+.drop-note{display:inline-block;margin:12px auto 0;padding:6px 12px;background:var(--note);color:var(--note-fg);border-radius:6px;max-width:60ch}
+.opts{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;margin-top:14px;box-shadow:0 1px 3px var(--shadow);grid-template-columns:minmax(140px,180px) minmax(200px,340px) 1fr}
+.actions{grid-column:1/-1}
+.btn{border-radius:8px}
+.btn-secondary{color:var(--fg);border-color:var(--drop-line)}
+.qv,.file-meta{font-family:var(--mono);font-size:13px}
+.field-label{font-weight:500}
+.files{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-top:10px;overflow:hidden}
+.files:empty{display:none}
+.file{padding:10px 12px}.file:last-child{border-bottom:0}
+.file-status{justify-self:end}
+.file-status.is-working{display:inline-block;padding:2px 10px;border:1px solid var(--drop-line);border-radius:999px;color:var(--fg)}
+.file-status.is-done{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--pill-ok-bg);color:var(--pill-ok-fg)}
+.file-status.is-done .dl{color:var(--pill-ok-fg)}.file-status.is-done .heic-note{color:var(--pill-ok-fg)}
+.file-status.err{display:inline-block;padding:2px 10px;border-radius:12px;background:var(--pill-err-bg);color:var(--pill-err-fg)}
+footer{background:transparent;border-top:0;margin-top:24px}
+.foot-links{display:flex;gap:18px;margin-top:8px}.foot-links a{color:var(--muted);text-decoration:underline;display:inline-block;min-height:24px;padding:2px 0}.foot-links a:hover{color:var(--accent)}
+@media (max-width:640px){header{padding-top:16px}.theme-wrap{align-items:flex-start}.opts{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.file-status{justify-self:start}.drop{padding:28px 14px}}
