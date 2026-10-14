@@ -2,7 +2,7 @@
 'use strict';
 const cfg=window.LIC_CONFIG||{HEIC_WASM_ENABLED:false};
 const $=id=>document.getElementById(id);
-const fmtSel=$('fmt'),q=$('q'),qv=$('qv'),list=$('list'),status=$('status'),btn=$('convert'),zipBtn=$('zip');
+const prog=$('prog'),clearBtn=$('clear'),fmtSel=$('fmt'),q=$('q'),qv=$('qv'),list=$('list'),status=$('status'),btn=$('convert'),zipBtn=$('zip');
 let items=[];
 const OUT=[['image/jpeg','JPEG','jpg'],['image/png','PNG','png'],['image/webp','WebP','webp'],['image/avif','AVIF','avif']];
 
@@ -53,24 +53,33 @@ async function convert(it,type,quality){
   if(!blob||blob.type!==type)throw new Error('your browser cannot encode this format');
   return blob;
 }
+function kb(n){return n<1024*1024?Math.max(1,Math.round(n/1024))+' KB':(n/1048576).toFixed(1)+' MB';}
 function add(files){
-  for(const f of files){const li=document.createElement('li');li.innerHTML='<span class="n"></span><span class="s">ready</span>';li.querySelector('.n').textContent=f.name+' ('+Math.round(f.size/1024)+' KB)';list.appendChild(li);items.push({file:f,li,out:null});}
-  btn.disabled=!items.length;
+  for(const f of files){const li=document.createElement('li');li.className='file';
+    li.innerHTML='<span class="file-name"></span><span class="file-meta"></span><span class="s file-status">Ready</span>';
+    li.querySelector('.file-name').textContent=f.name;li.querySelector('.file-meta').textContent=kb(f.size);li.title=f.name;
+    list.appendChild(li);items.push({file:f,li,out:null});}
+  btn.disabled=!items.length;clearBtn.disabled=!items.length;
+  if(items.length)status.textContent=items.length+(items.length===1?' file':' files')+' ready. Choose a format and press Convert.';
 }
+clearBtn.addEventListener('click',()=>{items.forEach(i=>{if(i.url)URL.revokeObjectURL(i.url);});items=[];list.innerHTML='';btn.disabled=zipBtn.disabled=clearBtn.disabled=true;prog.hidden=true;status.textContent='';});
 $('files').addEventListener('change',e=>{add(e.target.files);e.target.value='';});
 const drop=$('drop');
 ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
 ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
 drop.addEventListener('drop',e=>add(e.dataTransfer.files));
+drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('files').click();}});
+drop.addEventListener('click',e=>{if(e.target===drop||e.target.classList.contains('drop-title'))$('files').click();});
 btn.addEventListener('click',async()=>{
-  btn.disabled=true;const type=fmtSel.value,ext=OUT.find(o=>o[0]===type)[2],qual=q.value/100;let ok=0;
-  for(let i=0;i<items.length;i++){const it=items[i],s=it.li.querySelector('.s');status.textContent='Converting '+(i+1)+' of '+items.length+'…';s.textContent='working…';s.className='s';
+  btn.disabled=true;clearBtn.disabled=true;prog.hidden=false;prog.max=items.length;prog.value=0;const type=fmtSel.value,ext=OUT.find(o=>o[0]===type)[2],qual=q.value/100;let ok=0;
+  for(let i=0;i<items.length;i++){const it=items[i],s=it.li.querySelector('.s');status.textContent='Converting '+(i+1)+' of '+items.length+'…';s.textContent='Converting…';s.className='s file-status is-working';
     try{const b=await convert(it,type,qual);const name=it.file.name.replace(/\.[^.]+$/,'')+'.'+ext;it.out={name,blob:b};
       if(it.url)URL.revokeObjectURL(it.url);it.url=URL.createObjectURL(b);
-      s.innerHTML='';const a=document.createElement('a');a.href=it.url;a.download=name;a.textContent='Download '+ext.toUpperCase()+' ('+Math.round(b.size/1024)+' KB)';s.appendChild(a);ok++;
-    }catch(e){it.out=null;s.textContent='Error: '+e.message;s.className='s err';}
+      s.innerHTML='';const a=document.createElement('a');a.href=it.url;a.download=name;a.className='dl';a.textContent='Download '+ext.toUpperCase()+' ('+kb(b.size)+')';s.className='s file-status is-done';s.appendChild(a);ok++;
+    }catch(e){it.out=null;s.textContent='Error: '+e.message;s.className='s file-status err';}
+    prog.value=i+1;
   }
-  status.textContent='Done: '+ok+' of '+items.length+' converted locally.';btn.disabled=false;zipBtn.disabled=ok<2;
+  status.textContent='Done: '+ok+' of '+items.length+' converted locally.';btn.disabled=false;clearBtn.disabled=false;zipBtn.disabled=ok<2;
 });
 zipBtn.addEventListener('click',async()=>{const fs=items.filter(i=>i.out).map(i=>i.out);const seen={};fs.forEach(f=>{let n=f.name,k=1;while(seen[n])n=f.name.replace(/(\.[^.]+)$/,'-'+(k++)+'$1');seen[n]=1;f.name=n;});
   const z=await makeZip(fs);const a=document.createElement('a');a.href=URL.createObjectURL(z);a.download='converted-images.zip';document.body.appendChild(a);a.click();a.remove();});

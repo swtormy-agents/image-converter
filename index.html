@@ -6,20 +6,22 @@
 <link rel="canonical" href="https://swtormy-agents.github.io/local-image-converter/">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Local Image Converter"><meta property="og:title" content="Local Image Converter – HEIC, WebP, AVIF to JPG/PNG in your browser"><meta property="og:description" content="Convert HEIC/HEIF, WebP, AVIF, PNG and JPEG images to JPG, PNG or WebP directly in your browser. Files are processed on your device and not uploaded. Free, no ads, no cookies."><meta property="og:url" content="https://swtormy-agents.github.io/local-image-converter/">
 <link rel="icon" href="favicon.svg"><link rel="stylesheet" href="style.css"></head><body>
-<header><a class="brand" href="./">Local Image Converter</a><nav><a href="./">Converter</a> <a href="heic-to-jpg.html">HEIC&rarr;JPG</a> <a href="heic-to-png.html">HEIC&rarr;PNG</a> <a href="webp-to-png.html">WebP&rarr;PNG</a> <a href="webp-to-jpg.html">WebP&rarr;JPG</a> <a href="avif-to-jpg.html">AVIF&rarr;JPG</a> <a href="avif-to-png.html">AVIF&rarr;PNG</a> <a href="png-to-webp.html">PNG&rarr;WebP</a> <a href="jpg-to-webp.html">JPG&rarr;WebP</a> <a href="privacy.html">Privacy</a> <a href="licenses.html">Licences</a></nav></header><main>
+<header><a class="brand" href="./">Local Image Converter</a><nav><a href="./">Converter</a> <a href="privacy.html">Privacy</a> <a href="licenses.html">Licences</a></nav></header><main>
 <h1>Convert images locally in your browser</h1>
 <p class="lead">HEIC/HEIF, WebP, AVIF, PNG, JPEG &rarr; JPEG, PNG, WebP (AVIF if your browser can encode it). Your files are processed on your device and never uploaded.</p>
-<p class="note"><b>Limitations:</b> for HEIC/HEIF files with several images (bursts, live photos, sequences) only the first/primary image is converted. EXIF metadata (camera data, GPS location, date) is not kept, and EXIF orientation is not applied, so some photos may come out rotated.</p>
-<p class="note"><b>Browser testing:</b> tested in Chrome/Chromium, Firefox and a WebKit engine build. Safari on macOS and iOS/iPadOS is not fully tested yet; if something does not work there, please report it on GitHub.</p>
-<div id="drop" tabindex="0"><p>Drop images here or</p><label class="btn">Choose files<input id="files" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"></label></div>
+<section class="tool" aria-label="Converter">
+<div id="drop" class="drop" tabindex="0" role="button" aria-describedby="drop-hint"><p class="drop-title">Drop images here</p><p id="drop-hint" class="drop-hint">or <label class="link">browse files<input id="files" class="visually-hidden" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"></label> &middot; HEIC, HEIF, WebP, AVIF, PNG, JPEG</p></div>
 <div class="opts">
-<label>Output <select id="fmt"></select></label>
-<label>Quality <input id="q" type="range" min="10" max="100" value="90"> <span id="qv">90</span></label>
-<button id="convert" class="btn" disabled>Convert</button>
-<button id="zip" class="btn" disabled>Download all (.zip)</button>
+<label class="field"><span class="field-label">Output format</span><select id="fmt"></select></label>
+<label class="field field-q"><span class="field-label">Quality <output id="qv" for="q" class="qv">90</output></span><input id="q" type="range" min="10" max="100" value="90"></label>
+<div class="actions"><button id="convert" class="btn btn-primary" disabled>Convert</button><button id="zip" class="btn btn-secondary" disabled>Download all (.zip)</button><button id="clear" class="btn btn-ghost" disabled>Clear</button></div>
 </div>
-<p id="status" role="status"></p>
-<ul id="list"></ul>
+<div class="progress-row"><progress id="prog" max="1" value="0" hidden></progress><p id="status" role="status" aria-live="polite"></p></div>
+<ul id="list" class="files"></ul>
+</section>
 <noscript>This converter needs JavaScript; it runs only on your device.</noscript>
 <script src="config.js"></script><script src="zip.js"></script><script src="app.js"></script>
+<p class="note"><b>Limitations:</b> for HEIC/HEIF files with several images (bursts, live photos, sequences) only the first/primary image is converted. EXIF metadata (camera data, GPS location, date) is not kept, and EXIF orientation is not applied, so some photos may come out rotated.</p>
+<p class="note"><b>Browser testing:</b> tested in Chrome/Chromium, Firefox and a WebKit engine build. Safari on macOS and iOS/iPadOS is not fully tested yet; if something does not work there, please report it on GitHub.</p>
+<section class="pairs"><h2>Popular conversions</h2><ul><li><a href="heic-to-jpg.html">HEIC to JPG</a></li><li><a href="heic-to-png.html">HEIC to PNG</a></li><li><a href="webp-to-png.html">WebP to PNG</a></li><li><a href="webp-to-jpg.html">WebP to JPG</a></li><li><a href="avif-to-jpg.html">AVIF to JPG</a></li><li><a href="avif-to-png.html">AVIF to PNG</a></li><li><a href="png-to-webp.html">PNG to WebP</a></li><li><a href="jpg-to-webp.html">JPG to WebP</a></li></ul></section>
 </main><footer>Free, open-source, runs entirely in your browser. No uploads, no cookies, no ads. Not affiliated with, endorsed or sponsored by any device maker, browser or software vendor; format names are used descriptively only. Source: <a href="https://github.com/swtormy-agents/local-image-converter">GitHub</a>.</footer></body></html>
