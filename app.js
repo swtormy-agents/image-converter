@@ -7,7 +7,7 @@ let items=[];
 const OUT=[['image/jpeg','JPEG','jpg'],['image/png','PNG','png'],['image/webp','WebP','webp'],['image/avif','AVIF','avif']];
 
 function canEncode(type){return new Promise(r=>{const c=document.createElement('canvas');c.width=c.height=2;c.toBlob(b=>r(!!b&&b.type===type),type,0.8);});}
-(async()=>{for(const [t,l] of OUT){if(t==='image/jpeg'||t==='image/png'||await canEncode(t)){const o=document.createElement('option');o.value=t;o.textContent=l;fmtSel.appendChild(o);}}})();
+(async()=>{for(const [t,l] of OUT){if(t==='image/jpeg'||t==='image/png'||await canEncode(t)){const o=document.createElement('option');o.value=t;o.textContent=l;fmtSel.appendChild(o);}}const pre=document.body.dataset.out;if(pre&&[...fmtSel.options].some(o=>o.value===pre))fmtSel.value=pre;})();
 q.addEventListener('input',()=>{qv.textContent=q.value;});
 
 function isHeif(f){return /\.(heic|heif)$/i.test(f.name)||/image\/hei[cf]/i.test(f.type);}

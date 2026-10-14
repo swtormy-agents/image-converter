@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+"""Generates all HTML pages, sitemap.xml and robots.txt. Run: python3 tools/gen.py"""
+import re,os,html
+os.chdir(os.path.join(os.path.dirname(__file__),'..'))
+BASE='https://swtormy-agents.github.io/local-image-converter/'
+CSP="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+LIMITS='<p class="note"><b>Limitations:</b> for HEIC/HEIF files with several images (bursts, live photos, sequences) only the first/primary image is converted. EXIF metadata (camera data, GPS location, date) is not kept, and EXIF orientation is not applied, so some photos may come out rotated.</p>'
+SAFARI='<p class="note"><b>Browser testing:</b> tested in Chrome/Chromium, Firefox and a WebKit engine build. Safari on macOS and iOS/iPadOS is not fully tested yet; if something does not work there, please report it on GitHub.</p>'
+FOOT='</main><footer>Free, open-source, runs entirely in your browser. No uploads, no cookies, no ads. Not affiliated with, endorsed or sponsored by any device maker, browser or software vendor; format names are used descriptively only. Source: <a href="https://github.com/swtormy-agents/local-image-converter">GitHub</a>.</footer></body></html>\n'
+PAIRS=[('heic','jpg','HEIC','JPG','image/jpeg'),('heic','png','HEIC','PNG','image/png'),('webp','png','WebP','PNG','image/png'),('webp','jpg','WebP','JPG','image/jpeg'),
+('avif','jpg','AVIF','JPG','image/jpeg'),('avif','png','AVIF','PNG','image/png'),('png','webp','PNG','WebP','image/webp'),('jpg','webp','JPG','WebP','image/webp')]
+def head(path,title,desc,out=None):
+    url=BASE+path; e=html.escape
+    nav='<a href="./">Converter</a> '+' '.join(f'<a href="{a}-to-{b}.html">{A}&rarr;{B}</a>' for a,b,A,B,_ in PAIRS)+' <a href="privacy.html">Privacy</a> <a href="licenses.html">Licences</a>'
+    return f'''<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="{CSP}">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{e(title)}</title><meta name="description" content="{e(desc)}">
+<link rel="canonical" href="{url}">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Local Image Converter"><meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{url}">
+<link rel="icon" href="favicon.svg"><link rel="stylesheet" href="style.css"></head><body{f' data-out="{out}"' if out else ''}>
+<header><a class="brand" href="./">Local Image Converter</a><nav>{nav}</nav></header><main>
+'''
+TOOL='''<div id="drop" tabindex="0"><p>Drop images here or</p><label class="btn">Choose files<input id="files" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"></label></div>
+<div class="opts">
+<label>Output <select id="fmt"></select></label>
+<label>Quality <input id="q" type="range" min="10" max="100" value="90"> <span id="qv">90</span></label>
+<button id="convert" class="btn" disabled>Convert</button>
+<button id="zip" class="btn" disabled>Download all (.zip)</button>
+</div>
+<p id="status" role="status"></p>
+<ul id="list"></ul>
+<noscript>This converter needs JavaScript; it runs only on your device.</noscript>
+<script src="config.js"></script><script src="zip.js"></script><script src="app.js"></script>
+'''
+pages=[]
+def write(path,content): open(path,'w').write(content); pages.append(path)
+write('index.html',head('','Local Image Converter – HEIC, WebP, AVIF to JPG/PNG in your browser','Convert HEIC/HEIF, WebP, AVIF, PNG and JPEG images to JPG, PNG or WebP directly in your browser. Files are processed on your device and not uploaded. Free, no ads, no cookies.')
+ +'<h1>Convert images locally in your browser</h1>\n<p class="lead">HEIC/HEIF, WebP, AVIF, PNG, JPEG &rarr; JPEG, PNG, WebP (AVIF if your browser can encode it). Your files are processed on your device and never uploaded.</p>\n'+LIMITS+'\n'+SAFARI+'\n'+TOOL+FOOT)
+NOTES={'heic':'HEIC/HEIF is opened natively if your browser supports it; otherwise a WebAssembly decoder (libheif) is loaded from this site and runs locally.',
+ 'webp':'WebP is decoded by your browser\'s built-in decoder.','avif':'AVIF is decoded by your browser\'s built-in decoder (supported in current Chrome, Edge, Firefox and Safari versions).',
+ 'png':'PNG is decoded by your browser.','jpg':'JPEG is decoded by your browser.'}
+OUTN={'jpg':'JPG has no transparency, so transparent areas become white.','png':'PNG is lossless, so files can be larger than the original; the quality slider has no effect.','webp':'WebP output keeps transparency and is usually smaller than PNG or JPG; WebP encoding needs a browser that supports it (Chrome, Edge, Firefox; Safari may not encode WebP).'}
+for a,b,A,B,mime in PAIRS:
+    t=f'{A} to {B} converter – free, in your browser, no upload | Local Image Converter'
+    d=f'Convert {A} images to {B} in your browser. Batch conversion, quality slider, zip download. Files stay on your device; no upload, no ads, no cookies.'
+    write(f'{a}-to-{b}.html',head(f'{a}-to-{b}.html',t,d,mime)
+     +f'<h1>Convert {A} to {B} in your browser</h1>\n<p class="lead">Choose or drop {A} files, the output is preset to {B}. Conversion runs on your device; the files are not uploaded. You can convert several files at once and download them one by one or as a zip.</p>\n<p>{NOTES[a]} {OUTN[b]} Other formats are accepted too; you can change the output format below.</p>\n'+LIMITS+'\n'+SAFARI+'\n'+TOOL+FOOT)
+for f,t,d in [('privacy.html','Privacy notice – Local Image Converter','How Local Image Converter handles your files: processed locally in your browser, no uploads, no cookies, no analytics. Hosting logs by GitHub Pages explained.'),
+ ('licenses.html','Licences and attributions – Local Image Converter','Third-party licences used by Local Image Converter: libheif and libde265 (LGPL-3.0) for HEIC decoding, plus browser codec attributions.')]:
+    s=open(f).read(); body=re.search(r'<main>\n(.*?)</main>',s,re.S).group(1)
+    body=re.sub(r'<p class="note"><b>Browser testing:</b>.*?</p>\n','',body)
+    write(f,head(f,t,d)+body+SAFARI+'\n'+FOOT)
+open('sitemap.xml','w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+''.join(f'<url><loc>{BASE}{"" if p=="index.html" else p}</loc></url>\n' for p in pages)+'</urlset>\n')
+open('robots.txt','w').write(f'User-agent: *\nAllow: /\nSitemap: {BASE}sitemap.xml\n')
+print(pages)

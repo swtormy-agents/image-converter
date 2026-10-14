@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://swtormy-agents.github.io/local-image-converter/sitemap.xml
