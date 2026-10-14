@@ -11,7 +11,8 @@
 <p class="lead">Choose or drop JPG files, the output is preset to WebP. Conversion runs on your device; the files are not uploaded. You can convert several files at once and download them one by one or as a zip.</p>
 <p>JPEG is decoded by your browser. WebP output keeps transparency and is usually smaller than PNG or JPG; WebP encoding needs a browser that supports it (Chrome, Edge, Firefox; Safari may not encode WebP). Other formats are accepted too; you can change the output format below.</p>
 <section class="tool" aria-label="Converter">
-<div id="drop" class="drop" tabindex="0" role="button" aria-describedby="drop-hint"><p class="drop-title">Drop images here</p><p id="drop-hint" class="drop-hint">or <label class="link">browse files<input id="files" class="visually-hidden" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"></label> &middot; HEIC, HEIF, WebP, AVIF, PNG, JPEG</p></div>
+<div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose files or drop here" aria-describedby="drop-hint"><p class="drop-title">Drop images here</p><p id="drop-hint" class="drop-hint">or <span class="link">browse files</span> &middot; HEIC, HEIF, WebP, AVIF, PNG, JPEG</p></div>
+<input id="files" class="visually-hidden" type="file" tabindex="-1" aria-hidden="true" multiple accept="image/*,.heic,.heif,.avif,.webp">
 <div class="opts">
 <label class="field"><span class="field-label">Output format</span><select id="fmt"></select></label>
 <label class="field field-q"><span class="field-label">Quality <output id="qv" for="q" class="qv">90%</output></span><input id="q" type="range" min="10" max="100" value="90" aria-valuetext="90%" aria-describedby="q-hint"><span id="q-hint" class="hint">Applies to JPEG and WebP (and AVIF where available).</span></label>

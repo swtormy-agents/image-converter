@@ -72,8 +72,10 @@ const drop=$('drop');
 ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
 ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
 drop.addEventListener('drop',e=>add(e.dataTransfer.files));
-drop.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('files').click();}});
-drop.addEventListener('click',e=>{if(e.target===drop||e.target.classList.contains('drop-title'))$('files').click();});
+const pick=()=>$('files').click();
+drop.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(!e.repeat)pick();}else if(e.key===' '||e.key==='Spacebar'){e.preventDefault();}});
+drop.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Spacebar'){e.preventDefault();pick();}});
+drop.addEventListener('click',pick);
 btn.addEventListener('click',async()=>{
   btn.disabled=true;clearBtn.disabled=true;prog.hidden=false;prog.max=items.length;prog.value=0;const type=fmtSel.value,ext=OUT.find(o=>o[0]===type)[2],qual=q.value/100;let ok=0;
   for(let i=0;i<items.length;i++){const it=items[i],s=it.li.querySelector('.s');status.textContent='Converting '+(i+1)+' of '+items.length+'…';s.textContent='Converting…';s.className='s file-status is-working';
