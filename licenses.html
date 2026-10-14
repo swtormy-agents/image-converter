@@ -1,0 +1,21 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Licences – Local Image Converter</title><meta name="description" content="Third-party licences"><link rel="icon" href="favicon.svg"><link rel="stylesheet" href="style.css"></head><body>
+<header><a class="brand" href="./">Local Image Converter</a><nav><a href="./">Converter</a> <a href="privacy.html">Privacy</a> <a href="licenses.html">Licences</a></nav></header><main>
+<h1>Licences and attributions</h1>
+<p>This site's own code is released under the MIT licence (<a href="LICENSE">LICENSE</a>). Third-party components:</p>
+<h2>libheif-js 1.23.5 (libheif 1.23.x) — LGPL-3.0</h2>
+<p>HEIC/HEIF decoding is provided by <a href="https://github.com/strukturag/libheif">libheif</a> (© struktur AG and contributors), compiled to WebAssembly by <a href="https://github.com/catdad-experiments/libheif-js">libheif-js</a>. It bundles <a href="https://github.com/strukturag/libde265">libde265</a> 1.0.15 (LGPL-3.0) for HEVC <em>decoding</em> only. This site never encodes HEVC/HEIC.</p>
+<ul>
+<li>The library is shipped unmodified as a separate, dynamically loaded module (<code>vendor/libheif/libheif.js</code>, <code>vendor/libheif/libheif.wasm</code>) and is only fetched when needed.</li>
+<li>Licence texts: <a href="licenses/LGPL-3.0-libheif-js.txt">LGPL-3.0</a>, <a href="licenses/GPL-3.0.txt">GPL-3.0</a> (referenced by LGPL-3.0).</li>
+<li>Corresponding source: <a href="https://github.com/strukturag/libheif">libheif</a>, <a href="https://github.com/strukturag/libde265">libde265</a>, build scripts: <a href="https://github.com/catdad-experiments/libheif-js">libheif-js</a> (npm <code>libheif-js@1.23.5</code>).</li>
+<li>Replacing the library: you may substitute your own build by replacing the two files under <code>vendor/libheif/</code> with a compatible Emscripten build (see <a href="https://github.com/swtormy-agents/local-image-converter/blob/main/LGPL-NOTICE.md">LGPL-NOTICE.md</a> for rebuild instructions). The decoder can also be disabled entirely via <code>config.js</code>.</li>
+</ul>
+<h2>Browser codecs (WebP, AVIF, JPEG, PNG)</h2>
+<p>WebP, AVIF, JPEG and PNG decoding/encoding is performed by your browser's built-in codecs; this site ships no copy of them. For information: browsers typically use <a href="https://chromium.googlesource.com/webm/libwebp">libwebp</a> (BSD-3-Clause), <a href="https://github.com/AOMediaCodec/libavif">libavif</a> (BSD-2-Clause), <a href="https://code.videolan.org/videolan/dav1d">dav1d</a> (BSD-2-Clause) and <a href="https://aomedia.googlesource.com/aom/">libaom</a> (BSD-2-Clause), with AV1 under the <a href="https://aomedia.org/license/patent-license/">Alliance for Open Media Patent License 1.0</a>.</p>
+<h2>Trademarks</h2>
+<p>Format names (HEIC, HEIF, WebP, AVIF, JPEG, PNG) are used descriptively only. This site is not affiliated with, endorsed or sponsored by any device maker, browser or software vendor.</p>
+</main><footer>Free, open-source, runs entirely in your browser. No uploads, no cookies, no ads. Not affiliated with any device or software vendor. Source: <a href="https://github.com/swtormy-agents/local-image-converter">GitHub</a>.</footer></body></html>

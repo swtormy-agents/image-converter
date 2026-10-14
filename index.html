@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Local Image Converter – convert HEIC, WebP, AVIF to JPEG/PNG in your browser</title><meta name="description" content="Convert HEIC/HEIF, WebP, AVIF, PNG and JPEG images to JPEG, PNG, WebP or AVIF. Runs locally in your browser; files are never uploaded."><link rel="icon" href="favicon.svg"><link rel="stylesheet" href="style.css"></head><body>
+<header><a class="brand" href="./">Local Image Converter</a><nav><a href="./">Converter</a> <a href="privacy.html">Privacy</a> <a href="licenses.html">Licences</a></nav></header><main>
+<h1>Convert images locally in your browser</h1>
+<p class="lead">HEIC/HEIF, WebP, AVIF, PNG, JPEG &rarr; JPEG, PNG, WebP (AVIF if your browser can encode it). Your files are processed on your device and never uploaded.</p>
+<div id="drop" tabindex="0"><p>Drop images here or</p><label class="btn">Choose files<input id="files" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"></label></div>
+<div class="opts">
+<label>Output <select id="fmt"></select></label>
+<label>Quality <input id="q" type="range" min="10" max="100" value="90"> <span id="qv">90</span></label>
+<button id="convert" class="btn" disabled>Convert</button>
+<button id="zip" class="btn" disabled>Download all (.zip)</button>
+</div>
+<p id="status" role="status"></p>
+<ul id="list"></ul>
+<noscript>This converter needs JavaScript; it runs only on your device.</noscript>
+<script src="config.js"></script><script src="zip.js"></script><script src="app.js"></script>
+</main><footer>Free, open-source, runs entirely in your browser. No uploads, no cookies, no ads. Not affiliated with any device or software vendor. Source: <a href="https://github.com/swtormy-agents/local-image-converter">GitHub</a>.</footer></body></html>

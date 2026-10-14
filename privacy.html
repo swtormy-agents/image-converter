@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacy notice – Local Image Converter</title><meta name="description" content="Privacy notice"><link rel="icon" href="favicon.svg"><link rel="stylesheet" href="style.css"></head><body>
+<header><a class="brand" href="./">Local Image Converter</a><nav><a href="./">Converter</a> <a href="privacy.html">Privacy</a> <a href="licenses.html">Licences</a></nav></header><main>
+<h1>Privacy notice</h1>
+<ul>
+<li><b>No uploads.</b> All decoding and encoding happens inside your browser. Image files and file names are not sent to any server. The page's Content-Security-Policy restricts network connections to this site's own origin (<code>connect-src 'self'</code>), and the converter code makes no network requests with your files.</li>
+<li><b>Self-hosted code.</b> All scripts, including the optional HEIC decoder module, are served from this same site. No third-party CDNs, fonts or trackers.</li>
+<li><b>No cookies, no analytics, no ads, no accounts.</b> We do not collect personal data.</li>
+<li><b>Hosting logs.</b> The site is hosted on GitHub Pages. GitHub, as the host, may log technical data such as visitor IP addresses for security and operation; see the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer">GitHub Privacy Statement</a>. We do not receive or use these logs.</li>
+<li><b>HEIC decoder.</b> If your browser cannot open a HEIC/HEIF file natively, the page loads a WebAssembly decoder (libheif) from this same site. It runs locally like the rest of the tool.</li>
+</ul>
+<p>Questions: open an issue in the <a href="https://github.com/swtormy-agents/local-image-converter">GitHub repository</a>.</p>
+</main><footer>Free, open-source, runs entirely in your browser. No uploads, no cookies, no ads. Not affiliated with any device or software vendor. Source: <a href="https://github.com/swtormy-agents/local-image-converter">GitHub</a>.</footer></body></html>

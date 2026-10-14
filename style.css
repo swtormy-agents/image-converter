@@ -1,0 +1,11 @@
+body{font:16px/1.5 system-ui,sans-serif;margin:0;color:#222;background:#fafafa}
+header,footer{padding:12px 20px;background:#fff;border-bottom:1px solid #ddd;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+footer{border-top:1px solid #ddd;border-bottom:0;font-size:14px;color:#555;margin-top:40px}
+.brand{font-weight:700;color:#222;text-decoration:none}nav a{margin-right:12px}
+main{max-width:860px;margin:0 auto;padding:20px}.lead{color:#444}
+#drop{border:2px dashed #999;border-radius:10px;padding:30px;text-align:center;background:#fff}#drop.over{background:#eef5ff;border-color:#36c}
+.btn{display:inline-block;padding:8px 16px;border:1px solid #36c;background:#36c;color:#fff;border-radius:6px;cursor:pointer;font:inherit}
+.btn:disabled{opacity:.5;cursor:default}.btn input{display:none}
+.opts{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:16px 0}
+#list{list-style:none;padding:0}#list li{display:flex;gap:12px;align-items:center;padding:8px;background:#fff;border:1px solid #eee;margin:4px 0;border-radius:6px}
+#list img{width:64px;height:64px;object-fit:cover}#list .n{flex:1;word-break:break-all}.err{color:#b00}
