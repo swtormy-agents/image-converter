@@ -7,8 +7,12 @@ let items=[];
 const OUT=[['image/jpeg','JPEG','jpg'],['image/png','PNG','png'],['image/webp','WebP','webp'],['image/avif','AVIF','avif']];
 
 function canEncode(type){return new Promise(r=>{const c=document.createElement('canvas');c.width=c.height=2;c.toBlob(b=>r(!!b&&b.type===type),type,0.8);});}
-(async()=>{for(const [t,l] of OUT){if(t==='image/jpeg'||t==='image/png'||await canEncode(t)){const o=document.createElement('option');o.value=t;o.textContent=l;fmtSel.appendChild(o);}}const pre=document.body.dataset.out;if(pre&&[...fmtSel.options].some(o=>o.value===pre))fmtSel.value=pre;})();
-q.addEventListener('input',()=>{qv.textContent=q.value;});
+(async()=>{for(const [t,l] of OUT){if(t==='image/jpeg'||t==='image/png'||await canEncode(t)){const o=document.createElement('option');o.value=t;o.textContent=l;fmtSel.appendChild(o);}}const pre=document.body.dataset.out;if(pre&&[...fmtSel.options].some(o=>o.value===pre))fmtSel.value=pre;syncFmt();})();
+const qHint=$('q-hint'),aHint=$('action-hint');
+function syncQ(){qv.textContent=q.value+'%';q.setAttribute('aria-valuetext',q.value+'%');}
+function syncFmt(){const lossless=fmtSel.value==='image/png';q.disabled=lossless;qHint.textContent=lossless?'PNG is lossless, quality does not apply.':'Applies to JPEG and WebP (and AVIF where available).';}
+q.addEventListener('input',syncQ);fmtSel.addEventListener('change',syncFmt);
+function syncHint(ok){aHint.textContent=!items.length?'Add images to enable Convert. ZIP download is available for 2 or more converted files.':(ok===undefined?'Press Convert to process the list.':(ok>=2?'All done. Download files one by one or as a ZIP.':'ZIP download is available for 2 or more converted files.'));}
 
 function isHeif(f){return /\.(heic|heif)$/i.test(f.name)||/image\/hei[cf]/i.test(f.type);}
 
@@ -20,7 +24,7 @@ async function nativeDecode(file){
 // Lazily loaded, separate LGPL module (same origin). Kill-switch: config.js HEIC_WASM_ENABLED=false.
 let heifP=null;
 function loadHeif(){
-  if(!cfg.HEIC_WASM_ENABLED)return Promise.reject(new Error('HEIC decoder is disabled on this site'));
+  if(!cfg.HEIC_WASM_ENABLED){const e=new Error('disabled');e.friendly='HEIC/HEIF decoding is not available in this browser on this site right now.';return Promise.reject(e);}
   if(!heifP)heifP=new Promise((res,rej)=>{
     const s=document.createElement('script');s.src=cfg.HEIC_WASM_PATH+'libheif.js';
     s.onload=()=>{fetch(cfg.HEIC_WASM_PATH+'libheif.wasm').then(r=>{if(!r.ok)throw new Error('could not load HEIC decoder');return r.arrayBuffer();}).then(b=>window.libheif({wasmBinary:b})).then(res,rej);};
@@ -50,19 +54,19 @@ async function convert(it,type,quality){
   if(type==='image/jpeg'){ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);}
   ctx.drawImage(src,0,0);if(src.close)src.close();if(src.src&&src.src.startsWith('blob:'))URL.revokeObjectURL(src.src);
   const blob=await new Promise(r=>c.toBlob(r,type,quality));
-  if(!blob||blob.type!==type)throw new Error('your browser cannot encode this format');
+  if(!blob||blob.type!==type){const e=new Error('encode');e.friendly='Your browser cannot create this output format. Try JPEG or PNG.';throw e;}
   return blob;
 }
 function kb(n){return n<1024*1024?Math.max(1,Math.round(n/1024))+' KB':(n/1048576).toFixed(1)+' MB';}
 function add(files){
   for(const f of files){const li=document.createElement('li');li.className='file';
-    li.innerHTML='<span class="file-name"></span><span class="file-meta"></span><span class="s file-status">Ready</span>';
+    li.innerHTML='<span class="file-name"></span><span class="file-meta"></span><span class="s file-status">Ready</span><button class="rm" type="button" aria-label="Remove">&times;</button>';
     li.querySelector('.file-name').textContent=f.name;li.querySelector('.file-meta').textContent=kb(f.size);li.title=f.name;
-    list.appendChild(li);items.push({file:f,li,out:null});}
+    const it={file:f,li,out:null};li.querySelector('.rm').addEventListener('click',()=>{if(it.url)URL.revokeObjectURL(it.url);li.remove();items=items.filter(x=>x!==it);btn.disabled=clearBtn.disabled=!items.length;zipBtn.disabled=items.filter(x=>x.out).length<2;syncHint();});li.querySelector('.rm').setAttribute('aria-label','Remove '+f.name);list.appendChild(li);items.push(it);}
   btn.disabled=!items.length;clearBtn.disabled=!items.length;
-  if(items.length)status.textContent=items.length+(items.length===1?' file':' files')+' ready. Choose a format and press Convert.';
+  if(items.length)status.textContent=items.length+(items.length===1?' image':' images')+' in the list.';syncHint();
 }
-clearBtn.addEventListener('click',()=>{items.forEach(i=>{if(i.url)URL.revokeObjectURL(i.url);});items=[];list.innerHTML='';btn.disabled=zipBtn.disabled=clearBtn.disabled=true;prog.hidden=true;status.textContent='';});
+clearBtn.addEventListener('click',()=>{items.forEach(i=>{if(i.url)URL.revokeObjectURL(i.url);});items=[];list.innerHTML='';btn.disabled=zipBtn.disabled=clearBtn.disabled=true;prog.hidden=true;status.textContent='';syncHint();});
 $('files').addEventListener('change',e=>{add(e.target.files);e.target.value='';});
 const drop=$('drop');
 ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
@@ -76,10 +80,10 @@ btn.addEventListener('click',async()=>{
     try{const b=await convert(it,type,qual);const name=it.file.name.replace(/\.[^.]+$/,'')+'.'+ext;it.out={name,blob:b};
       if(it.url)URL.revokeObjectURL(it.url);it.url=URL.createObjectURL(b);
       s.innerHTML='';const a=document.createElement('a');a.href=it.url;a.download=name;a.className='dl';a.textContent='Download '+ext.toUpperCase()+' ('+kb(b.size)+')';s.className='s file-status is-done';s.appendChild(a);ok++;
-    }catch(e){it.out=null;s.textContent='Error: '+e.message;s.className='s file-status err';}
+    }catch(e){it.out=null;s.textContent=e.friendly||"Couldn't read this file. Is it a supported image (HEIC, HEIF, WebP, AVIF, PNG, JPEG)?";s.className='s file-status err';}
     prog.value=i+1;
   }
-  status.textContent='Done: '+ok+' of '+items.length+' converted locally.';btn.disabled=false;clearBtn.disabled=false;zipBtn.disabled=ok<2;
+  status.textContent='Done: '+ok+' of '+items.length+' converted locally.';btn.disabled=false;clearBtn.disabled=false;zipBtn.disabled=ok<2;syncHint(ok);
 });
 zipBtn.addEventListener('click',async()=>{const fs=items.filter(i=>i.out).map(i=>i.out);const seen={};fs.forEach(f=>{let n=f.name,k=1;while(seen[n])n=f.name.replace(/(\.[^.]+)$/,'-'+(k++)+'$1');seen[n]=1;f.name=n;});
   const z=await makeZip(fs);const a=document.createElement('a');a.href=URL.createObjectURL(z);a.download='converted-images.zip';document.body.appendChild(a);a.click();a.remove();});

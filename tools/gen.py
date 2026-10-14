@@ -27,8 +27,9 @@ TOOL='''<section class="tool" aria-label="Converter">
 <div id="drop" class="drop" tabindex="0" role="button" aria-describedby="drop-hint"><p class="drop-title">Drop images here</p><p id="drop-hint" class="drop-hint">or <label class="link">browse files<input id="files" class="visually-hidden" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"></label> &middot; HEIC, HEIF, WebP, AVIF, PNG, JPEG</p></div>
 <div class="opts">
 <label class="field"><span class="field-label">Output format</span><select id="fmt"></select></label>
-<label class="field field-q"><span class="field-label">Quality <output id="qv" for="q" class="qv">90</output></span><input id="q" type="range" min="10" max="100" value="90"></label>
-<div class="actions"><button id="convert" class="btn btn-primary" disabled>Convert</button><button id="zip" class="btn btn-secondary" disabled>Download all (.zip)</button><button id="clear" class="btn btn-ghost" disabled>Clear</button></div>
+<label class="field field-q"><span class="field-label">Quality <output id="qv" for="q" class="qv">90%</output></span><input id="q" type="range" min="10" max="100" value="90" aria-valuetext="90%" aria-describedby="q-hint"><span id="q-hint" class="hint">Applies to JPEG and WebP (and AVIF where available).</span></label>
+<div class="actions"><button id="convert" class="btn btn-primary" disabled>Convert</button><button id="zip" class="btn btn-secondary" disabled>Download all (.zip)</button><button id="clear" class="btn btn-ghost" disabled>Clear list</button></div>
+<p id="action-hint" class="hint action-hint">Add images to enable Convert. ZIP download is available for 2 or more converted files.</p>
 </div>
 <div class="progress-row"><progress id="prog" max="1" value="0" hidden></progress><p id="status" role="status" aria-live="polite"></p></div>
 <ul id="list" class="files"></ul>
@@ -36,11 +37,12 @@ TOOL='''<section class="tool" aria-label="Converter">
 <noscript>This converter needs JavaScript; it runs only on your device.</noscript>
 <script src="config.js"></script><script src="zip.js"></script><script src="app.js"></script>
 '''
+NOTES_BOX='<details class="notes"><summary><b>Limitations and browser support</b> &middot; Safari/iOS not fully tested yet; EXIF and orientation are dropped</summary>'+LIMITS+SAFARI+'</details>'
 PAIRLINKS='<section class="pairs"><h2>Popular conversions</h2><ul>'+''.join(f'<li><a href="{a}-to-{b}.html">{A} to {B}</a></li>' for a,b,A,B,_ in PAIRS)+'</ul></section>'
 pages=[]
 def write(path,content): open(path,'w').write(content); pages.append(path)
 write('index.html',head('','Local Image Converter – HEIC, WebP, AVIF to JPG/PNG in your browser','Convert HEIC/HEIF, WebP, AVIF, PNG and JPEG images to JPG, PNG or WebP directly in your browser. Files are processed on your device and not uploaded. Free, no ads, no cookies.')
- +'<h1>Convert images locally in your browser</h1>\n<p class="lead">HEIC/HEIF, WebP, AVIF, PNG, JPEG &rarr; JPEG, PNG, WebP (AVIF if your browser can encode it). Your files are processed on your device and never uploaded.</p>\n'+TOOL+LIMITS+'\n'+SAFARI+'\n'+PAIRLINKS+'\n'+FOOT)
+ +'<h1>Convert images locally in your browser</h1>\n<p class="lead">HEIC/HEIF, WebP, AVIF, PNG, JPEG &rarr; JPEG, PNG, WebP (AVIF if your browser can encode it). Your files are processed on your device and never uploaded.</p>\n'+TOOL+NOTES_BOX+'\n'+PAIRLINKS+'\n'+FOOT)
 NOTES={'heic':'HEIC/HEIF is opened natively if your browser supports it; otherwise a WebAssembly decoder (libheif) is loaded from this site and runs locally.',
  'webp':'WebP is decoded by your browser\'s built-in decoder.','avif':'AVIF is decoded by your browser\'s built-in decoder (supported in current Chrome, Edge, Firefox and Safari versions).',
  'png':'PNG is decoded by your browser.','jpg':'JPEG is decoded by your browser.'}
@@ -49,7 +51,7 @@ for a,b,A,B,mime in PAIRS:
     t=f'{A} to {B} converter – free, in your browser, no upload | Local Image Converter'
     d=f'Convert {A} images to {B} in your browser. Batch conversion, quality slider, zip download. Files stay on your device; no upload, no ads, no cookies.'
     write(f'{a}-to-{b}.html',head(f'{a}-to-{b}.html',t,d,mime)
-     +f'<h1>Convert {A} to {B} in your browser</h1>\n<p class="lead">Choose or drop {A} files, the output is preset to {B}. Conversion runs on your device; the files are not uploaded. You can convert several files at once and download them one by one or as a zip.</p>\n<p>{NOTES[a]} {OUTN[b]} Other formats are accepted too; you can change the output format below.</p>\n'+TOOL+LIMITS+'\n'+SAFARI+'\n'+PAIRLINKS+'\n'+FOOT)
+     +f'<h1>Convert {A} to {B} in your browser</h1>\n<p class="lead">Choose or drop {A} files, the output is preset to {B}. Conversion runs on your device; the files are not uploaded. You can convert several files at once and download them one by one or as a zip.</p>\n<p>{NOTES[a]} {OUTN[b]} Other formats are accepted too; you can change the output format below.</p>\n'+TOOL+NOTES_BOX+'\n'+PAIRLINKS+'\n'+FOOT)
 for f,t,d in [('privacy.html','Privacy notice – Local Image Converter','How Local Image Converter handles your files: processed locally in your browser, no uploads, no cookies, no analytics. Hosting logs by GitHub Pages explained.'),
  ('licenses.html','Licences and attributions – Local Image Converter','Third-party licences used by Local Image Converter: libheif and libde265 (LGPL-3.0) for HEIC decoding, plus browser codec attributions.')]:
     s=open(f).read(); body=re.search(r'<main>\n(.*?)</main>',s,re.S).group(1)

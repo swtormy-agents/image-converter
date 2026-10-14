@@ -20,7 +20,7 @@ h1{font-size:clamp(26px,4vw,34px);line-height:1.2;margin:0 0 10px}h2{font-size:2
 .opts{display:grid;grid-template-columns:minmax(140px,180px) minmax(180px,1fr) auto;gap:16px 20px;align-items:end;margin-top:18px}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .field-label{font-size:14px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;align-items:baseline}
-.qv{display:inline-block;width:3.5ch;text-align:right;font-variant-numeric:tabular-nums;color:var(--fg)}
+.qv{display:inline-block;width:4.5ch;min-width:3ch;text-align:right;font-variant-numeric:tabular-nums;color:var(--fg)}
 select{font:inherit;height:42px;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--fg)}
 input[type=range]{width:100%;height:42px;margin:0;accent-color:var(--accent)}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
@@ -53,3 +53,15 @@ code{background:#eef0f4;padding:1px 4px;border-radius:4px}
  .file-name{grid-area:n}.file-meta{grid-area:m}.file-status{grid-area:s;text-align:left}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.action-hint{grid-column:1/-1;min-height:20px}
+input[type=range]:disabled{opacity:.4;cursor:not-allowed}
+.btn:disabled{opacity:1}
+.btn-primary:disabled{background:#c9d3e6;color:#2b3445}
+.btn-secondary:disabled,.btn-ghost:disabled{background:#f2f4f7;color:#4a5263;border-color:#d5dae2}
+.file{grid-template-columns:minmax(0,1fr) 7ch minmax(170px,auto) 32px}
+.rm{width:32px;height:32px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);font-size:20px;line-height:1;cursor:pointer}
+.rm:hover{background:#f2f4f7;color:var(--err)}
+.notes{margin:0 0 8px}.notes summary{cursor:pointer;padding:10px 14px;background:var(--note);border:1px solid var(--note-line);border-radius:8px;font-size:14px}
+.notes[open] summary{border-radius:8px 8px 0 0}
+@media (max-width:640px){.file{grid-template-columns:minmax(0,1fr) auto 32px;grid-template-areas:"n m r" "s s s"}.rm{grid-area:r}.btn{min-height:44px}select,input[type=range]{min-height:44px}}
