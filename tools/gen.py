@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generates all HTML pages, sitemap.xml and robots.txt. Run: python3 tools/gen.py"""
+# NOTE: only writes the pages listed below; never touches google*.html (Search Console verification file, keep, not in sitemap).
 import re,os,html
 os.chdir(os.path.join(os.path.dirname(__file__),'..'))
 BASE='https://swtormy-agents.github.io/local-image-converter/'
