@@ -9,3 +9,4 @@ main{max-width:860px;margin:0 auto;padding:20px}.lead{color:#444}
 .opts{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:16px 0}
 #list{list-style:none;padding:0}#list li{display:flex;gap:12px;align-items:center;padding:8px;background:#fff;border:1px solid #eee;margin:4px 0;border-radius:6px}
 #list img{width:64px;height:64px;object-fit:cover}#list .n{flex:1;word-break:break-all}.err{color:#b00}
+.note{background:#fff8e1;border:1px solid #f0d58a;padding:8px 12px;border-radius:6px;font-size:14px}
