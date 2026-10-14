@@ -117,3 +117,16 @@ main{padding-top:16px}
 footer{background:transparent;border-top:0;margin-top:24px}
 .foot-links{display:flex;gap:18px;margin-top:8px}.foot-links a{color:var(--muted);text-decoration:underline;display:inline-block;min-height:24px;padding:2px 0}.foot-links a:hover{color:var(--accent)}
 @media (max-width:640px){header{padding-top:16px}.theme-wrap{align-items:flex-start}.opts{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.file-status{justify-self:start}.drop{padding:28px 14px}}
+/* Header redesign: brand + tagline, segmented theme control (native radios) */
+header{flex-wrap:nowrap;align-items:flex-start}
+.brand-wrap{display:grid;grid-template-columns:30px auto;column-gap:10px;min-width:0}
+.brand{grid-column:1/-1}
+.tagline{grid-column:2;margin:-6px 0 0;font-size:13px;line-height:18px;color:var(--muted)}
+.seg{display:inline-flex;margin:0;padding:3px;border:1px solid var(--drop-line);border-radius:10px;background:var(--card);gap:2px;min-inline-size:0}
+.seg input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+.seg label{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 12px;border-radius:7px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none}
+.seg label:hover{color:var(--fg);background:var(--hover)}
+.seg input:checked+label{background:var(--chip-bg);color:var(--fg)}
+.seg input:focus-visible+label{outline:3px solid var(--focus);outline-offset:2px}
+.theme-wrap{gap:4px}
+@media (max-width:640px){header{flex-wrap:wrap;gap:12px}.theme-wrap{align-items:flex-start;width:100%}.seg label{min-height:44px;padding:0 16px;flex:1}.seg{width:auto}}
