@@ -20,8 +20,8 @@ def head(path,title,desc,out=None):
 <title>{e(title)}</title><meta name="description" content="{e(desc)}">
 <link rel="canonical" href="{url}">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Local Image Converter"><meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{url}">
-<link rel="icon" href="favicon.svg"><link rel="stylesheet" href="style.css"></head><body{f' data-out="{out}"' if out else ''}>
-<header><a class="brand" href="./">Local Image Converter</a><nav>{nav}</nav></header><main>
+<script src="theme.js"></script><link rel="icon" href="favicon.svg"><link rel="stylesheet" href="style.css"></head><body{f' data-out="{out}"' if out else ''}>
+<header><a class="brand" href="./">Local Image Converter</a><div class="hdr-right"><nav>{nav}</nav><label class="theme-field" for="theme">Theme <select id="theme" name="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></div></header><main>
 '''
 TOOL='''<section class="tool" aria-label="Converter">
 <div id="drop" class="drop" tabindex="0" role="button" aria-label="Choose files or drop here" aria-describedby="drop-hint"><p class="drop-title">Drop images here</p><p id="drop-hint" class="drop-hint">or <span class="link">browse files</span> &middot; HEIC, HEIF, WebP, AVIF, PNG, JPEG</p><p class="drop-note">HEIC/HEIF: only the first image in a file is converted. EXIF and orientation are dropped.</p></div>
