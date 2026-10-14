@@ -85,8 +85,8 @@ input[type=range]:disabled{opacity:.4;cursor:not-allowed}
 .theme-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
 .theme-hint{display:inline-block;box-sizing:border-box;min-height:24px;padding:4px 0;font-size:12px;line-height:16px;color:var(--muted);text-decoration:underline;text-underline-offset:2px}.theme-hint:hover{color:var(--accent)}
 /* ===== Redesign (Olivia Bennett mockups, 2026-10) ===== */
-:root,:root[data-theme=light]{--bg:#f4f5f8;--line:#d9dde5;--chip-bg:#e9ebf0;--chip-fg:#3a4252;--pill-ok-bg:#e3eafc;--pill-ok-fg:#1c449c;--pill-warn-bg:#fdf1c7;--pill-warn-fg:#5c4500;--pill-err-bg:#fde7e5;--pill-err-fg:#8f1d14;--logo-bg:#1c449c;--logo-fg:#fff}
-:root[data-theme=dark]{--bg:#111318;--card:#181b22;--line:#2c313c;--chip-bg:#252a35;--chip-fg:#c9cdd6;--pill-ok-bg:#1d2a4a;--pill-ok-fg:#a9c2ff;--pill-warn-bg:#3a3012;--pill-warn-fg:#f2d27a;--pill-err-bg:#3d1c1a;--pill-err-fg:#ffb3ad;--logo-bg:#7aa2ff;--logo-fg:#0f1115}
+:root,:root[data-theme=light]{--fg:#141821;--note-fg:#141821;--muted:#4a5263;--accent:#1c449c;--accent-d:#163677;--focus:#1c449c;--bg:#f4f5f8;--line:#d9dde5;--chip-bg:#e9ebf0;--chip-fg:#3a4252;--pill-ok-bg:#e3eafc;--pill-ok-fg:#1c449c;--pill-warn-bg:#fdf1c7;--pill-warn-fg:#5c4500;--pill-err-bg:#fde7e5;--pill-err-fg:#8f1d14;--logo-bg:#1c449c;--logo-fg:#fff}
+:root[data-theme=dark]{--bg:#0f1115;--card:#171a21;--line:#2c313c;--chip-bg:#252a35;--chip-fg:#c9cdd6;--pill-ok-bg:#1d2a4a;--pill-ok-fg:#a9c2ff;--pill-warn-bg:#3a3012;--pill-warn-fg:#f2d27a;--pill-err-bg:#3d1c1a;--pill-err-fg:#ffb3ad;--logo-bg:#7aa2ff;--logo-fg:#0f1115}
 :root{--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 header{background:transparent;border-bottom:0;padding-top:28px;padding-bottom:8px;align-items:flex-start}
 .brand{display:inline-flex;align-items:center;gap:10px;font-size:17px;font-weight:600;min-height:36px}
@@ -130,3 +130,4 @@ header{flex-wrap:nowrap;align-items:flex-start}
 .seg input:focus-visible+label{outline:3px solid var(--focus);outline-offset:2px}
 .theme-wrap{gap:4px}
 @media (max-width:640px){header{flex-wrap:wrap;gap:12px}.theme-wrap{align-items:flex-start;width:100%}.seg label{min-height:44px;padding:0 16px;flex:1}.seg{width:auto}}
+main{max-width:920px;box-sizing:border-box}
