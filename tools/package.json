@@ -1,0 +1,13 @@
+{
+  "name": "image-converter-tools",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build:css": "tailwindcss -i css/input.css -o ../build/app.css --minify",
+    "check:css": "node scripts/check-css.mjs"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.3",
+    "daisyui": "5.7.50"
+  }
+}
