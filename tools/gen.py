@@ -82,8 +82,8 @@ def head(T,lang,page,title,desc,out=None):
 def hero(h1,lede,T,pnote=''):
     return (f'<section class="hero"><h1>{e(h1)}</h1><p class="lede">{e(lede)}</p><p class="lede-m">{e(T["lede_m"])}</p>'
             +(f'<p class="pnote">{e(pnote)}</p>' if pnote else '')+'</section>\n')
-def tool(T,P):
-    return f'''<label class="drop" for="files" id="drop"><input id="files" name="files" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"><ul class="pills" aria-hidden="true"><li>HEIC</li><li>WebP</li><li>AVIF</li><li>PNG</li><li>JPEG</li></ul><span class="dt">{e(T['drop'])}</span><span class="ds">{e(T['drop_sub'])}</span><span class="hn">{e(T['heic_note'])}</span></label>
+def tool(T,P,heic=True):
+    return f'''<label class="drop" for="files" id="drop"><input id="files" name="files" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"><ul class="pills" aria-hidden="true"><li>HEIC</li><li>WebP</li><li>AVIF</li><li>PNG</li><li>JPEG</li></ul><span class="dt">{e(T['drop'])}</span><span class="ds">{e(T['drop_sub'])}</span>{f'<span class="hn">{e(T["heic_note"])}</span>' if heic else ''}</label>
 <section class="controls" aria-label="{e(T['converter_label'])}"><div class="fields"><div class="field"><label for="fmt">{e(T['out_fmt'])}</label><select id="fmt" name="format"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option></select></div>
 <div class="field"><label for="q">{e(T['quality_label'])}</label><div class="qrow"><input id="q" name="quality" type="range" min="0.5" max="1" step="0.05" value="0.85"><output id="qv" for="q" class="qv">{e(T['q_default'])}</output></div></div></div>
 <div class="bar"><div class="actions"><button id="clear" type="button" class="btn sec" disabled>{e(T['clear'])}</button><button id="zip" type="button" class="btn sec" disabled>{e(T['zip'])}</button><button id="convert" type="button" class="btn pri" disabled>{e(T['js']['convert0'])}</button></div></div>
@@ -93,8 +93,8 @@ def tool(T,P):
 '''
 def limits(T,extra=''):
     return f'<details class="lim"><summary>{e(T["lim"])}</summary><p>{e(T["lim_p"])}</p>'+(f'<p>{e(extra)}</p>' if extra else '')+'</details>\n'
-def more(T,lede,pnote='',extra=''):
-    ps=[lede]+([pnote] if pnote else [])+[T['heic_note'],T['lim_p']]+([extra] if extra else [])
+def more(T,lede,pnote='',extra='',heic=True):
+    ps=[lede]+([pnote] if pnote else [])+([T['heic_note']] if heic else [])+[T['lim_p']]+([extra] if extra else [])
     return f'<details class="more"><summary>{e(T["more"])}</summary>'+''.join(f'<p>{e(x)}</p>' for x in ps)+'</details>\n'
 def safari(T): return '<p class="note">'+T['safari_html']+'</p>'
 def pairlinks(T): return '<section class="pop" aria-labelledby="pp"><h2 id="pp">'+e(T['popular'])+'</h2><ul class="pairs">'+''.join(f'<li><a href="{a}-to-{b}.html">{e(T["pair_link"].format(A=A,B=B))}</a></li>' for a,b,A,B,_ in PAIRS)+'</ul></section>'
@@ -119,7 +119,7 @@ def render(lang,T):
     for a,b,A,B,mime in PAIRS:
         p=f'{a}-to-{b}.html'; lead=T['pair_lead'].format(A=A,B=B); dec=T['notes'][a] if a=='heic' else ''
         out[p]=(head(T,lang,p,T['pair_title'].format(A=A,B=B),T['pair_desc'].format(A=A,B=B),mime)
-         +hero(T['pair_h1'].format(A=A,B=B),lead,T,T['outn'][b])+tool(T,P)+limits(T,dec)+more(T,lead,T['outn'][b],dec)+pairlinks(T)+'\n'+foot(T))
+         +hero(T['pair_h1'].format(A=A,B=B),lead,T,T['outn'][b])+tool(T,P,a=='heic')+limits(T,dec)+more(T,lead,T['outn'][b],dec,a=='heic')+pairlinks(T)+'\n'+foot(T))
     if lang=='en': pb,lb=EN_BODY['privacy.html'],EN_BODY['licenses.html']
     else:
         pb='<p class="note prevails">'+T['prevails_html']+'</p>\n'+open(f'tools/i18n/privacy.{lang}.html',encoding='utf-8').read()
