@@ -11,6 +11,13 @@ LANGS=['en','ru','zh']
 HREFLANG={'en':'en','ru':'ru','zh':'zh-Hans'}
 LANG_NAME={'en':'English','ru':'Русский','zh':'中文'}
 OG_LOCALE={'en':'en_US','ru':'ru_RU','zh':'zh_CN'}
+OG_LINE2={'en':'Files never leave this device','ru':'Файлы не отправляются на сервер и не покидают устройство','zh':'文件不会上传到服务器'}
+OG_SEP={'en':'. ','ru':'. ','zh':'。'}
+def og_alt(T,lang):
+    a=re.sub(r'<[^>]*>','',html.unescape(T['index_h1'])).strip()  # plain text of index_h1 (U+00A0 kept)
+    if a[-1:] not in '.。!?！？': a+=OG_SEP[lang].rstrip(' ')
+    return a+' '*OG_SEP[lang].endswith(' ')+OG_LINE2[lang]
+def og_img(lang): return BASE+f'assets/og/og-{lang}.png'  # absolute, same BASE as canonical
 I18N={l:json.load(open(f'tools/i18n/{l}.json',encoding='utf-8')) for l in LANGS}
 PAIRS=[('heic','jpg','HEIC','JPG','image/jpeg'),('heic','png','HEIC','PNG','image/png'),('webp','png','WebP','PNG','image/png'),('webp','jpg','WebP','JPG','image/jpeg'),
 ('avif','jpg','AVIF','JPG','image/jpeg'),('avif','png','AVIF','PNG','image/png'),('png','webp','PNG','WebP','image/webp'),('jpg','webp','JPG','WebP','image/webp')]
@@ -45,6 +52,8 @@ def head(T,lang,page,title,desc,out=None):
 <link rel="canonical" href="{url(lang,page)}">
 {alts}
 <meta property="og:type" content="website"><meta property="og:site_name" content="Local Image Converter"><meta property="og:locale" content="{OG_LOCALE[lang]}"><meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{url(lang,page)}">
+<meta property="og:image" content="{og_img(lang)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/png"><meta property="og:image:alt" content="{e(og_alt(T,lang))}">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{og_img(lang)}"><meta name="twitter:image:alt" content="{e(og_alt(T,lang))}">
 {ld}<script src="{P}theme.js"></script><link rel="icon" href="{P}favicon.svg"><link rel="stylesheet" href="{P}style.css"></head><body{attrs}>
 <header><div class="brand-wrap"><a class="brand" href="./">Local Image Converter</a><p class="tagline">{e(T['tagline'])}</p></div><div class="header-right">{nav}<div class="theme-wrap"><fieldset id="theme" class="seg" aria-describedby="theme-hint"><legend class="visually-hidden">{e(T['theme'])}</legend><input type="radio" name="theme" id="theme-system" value="system"><label for="theme-system">{e(T['system'])}</label><input type="radio" name="theme" id="theme-light" value="light"><label for="theme-light">{e(T['light'])}</label><input type="radio" name="theme" id="theme-dark" value="dark"><label for="theme-dark">{e(T['dark'])}</label></fieldset><a id="theme-hint" class="theme-hint" href="privacy.html">{e(T['theme_hint'])}</a></div></div></header>{mt}<main>
 '''
@@ -110,6 +119,9 @@ def selftest():
             assert '<' not in m and '>' not in m and '&' not in m, f'raw markup in JSON-LD in {p}'
             assert json.loads(m)['name'].endswith(bad), f'JSON-LD name mismatch in {p}'
 selftest()
+for _l in LANGS:
+    assert os.path.isfile(f'assets/og/og-{_l}.png'), f'missing og image for {_l}'
+    _a=og_alt(I18N[_l],_l); assert '..' not in _a and '。。' not in _a and '.。' not in _a, f'double punctuation in og alt {_l}'
 
 pages=[]
 for lang in LANGS:
