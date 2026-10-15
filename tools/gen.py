@@ -77,7 +77,7 @@ def render(lang,T):
     for a,b,A,B,mime in PAIRS:
         p=f'{a}-to-{b}.html'
         out[p]=(head(T,lang,p,T['pair_title'].format(A=A,B=B),T['pair_desc'].format(A=A,B=B),mime)
-         +f'<h1>{e(T["pair_h1"].format(A=A,B=B))}</h1>\n<p class="lead">{e(T["pair_lead"].format(A=A,B=B))}</p>\n<p>{e(T["notes"][a])} {e(T["outn"][b])} {e(T["other_formats"])}</p>\n'+tool(T,P)+notes_box(T)+'\n'+pairlinks(T)+'\n'+foot(T))
+         +f'<h1>{e(T["pair_h1"].format(A=A,B=B))}</h1>\n<p class="lead">{e(T["pair_lead"].format(A=A,B=B))}</p>\n'+tool(T,P)+f'<p class="pair-notes">{e(T["notes"][a])} {e(T["outn"][b])} {e(T["other_formats"])}</p>\n'+notes_box(T)+'\n'+pairlinks(T)+'\n'+foot(T))
     if lang=='en': pb,lb=EN_BODY['privacy.html'],EN_BODY['licenses.html']
     else:
         pb='<p class="note prevails">'+T['prevails_html']+'</p>\n'+open(f'tools/i18n/privacy.{lang}.html',encoding='utf-8').read()
