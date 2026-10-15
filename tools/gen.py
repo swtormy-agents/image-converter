@@ -54,17 +54,31 @@ def check_ru(T,path='ru'):
         txt=html.unescape(re.sub(r'<[^>]*>','',v)) if k.endswith('_html') else v
         assert ru_nbsp(txt)==txt, f'plain space after a short word in {path}.{k}'
 ICON='<svg viewBox="0 0 28 28" aria-hidden="true" class="size-7 shrink-0 text-primary" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="26" height="26" rx="7"/><path d="M8 18l4-5 3 3 2-2 3 4"/></svg>'
-CHEV='<svg class="size-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>'
+GLOBE='<svg class="ico-globe size-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'
+CHEV_S='<svg class="ico-chev hidden sm:block size-3.5 shrink-0 opacity-70" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>'
+CHECK='<svg class="ms-auto size-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>'
+LANG_CODE={'en':'EN','ru':'RU','zh':'ZH'}  # right-hand codes of the inactive items (the button itself shows i18n lang_code: EN/RU/中文)
 X_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
 def head(T,lang,page,title,desc,out=None):
     P='' if lang=='en' else '../'
     ld=jsonld(lang,page,title,desc) if page in LD_PAGES else ''
     alts=''.join(f'<link rel="alternate" hreflang="{HREFLANG[l]}" href="{url(l,page)}">' for l in LANGS)+f'<link rel="alternate" hreflang="x-default" href="{url("en",page)}">'
     ROOT=re.sub(r'^https?://[^/]+','',BASE)  # '/image-converter/': language links (inline list and dropdown) are root-relative plain <a href>, no JS
-    items=''.join(f'<li><a class="min-h-12'+(' menu-active' if l==lang else '')+f'" href="{ROOT}{lp(l)}{"" if page=="index.html" else page}" lang="{HREFLANG[l]}" hreflang="{HREFLANG[l]}"'+(' aria-current="page"' if l==lang else '')+f'>{e(LANG_NAME[l])}</a></li>' for l in LANGS)
-    # «Лагуна» (spec 2026-10-15): one no-JS daisyUI <details> dropdown on all widths (inline list removed)
-    nav=('<nav class="lang-dd" aria-label="'+e(T['lang_nav'])+f'"><details class="dropdown dropdown-end"><summary class="btn btn-ghost min-h-11 min-w-11 px-2 sm:px-3 font-medium whitespace-nowrap"><span lang="{HREFLANG[lang]}">{e(LANG_NAME[lang])}</span>{CHEV}</summary><ul class="dd-list dropdown-content menu bg-base-100 rounded-box border border-base-300 z-20 w-44 p-2 shadow-lg">'+items+'</ul></details></nav>')
-    theme='<div class="theme hidden sm:flex items-center gap-2"><label for="theme" class="text-sm text-base-content/80">'+e(T['theme'])+'</label><select id="theme" name="theme" class="select select-sm w-auto min-h-11">'+''.join(f'<option value="{v}">{e(T[v])}</option>' for v in ('system','light','dark'))+'</select></div>'
+    # Selectors v2, variant B «Одно меню» (spec /workspace/design/selectors-v2/spec.md, owner-approved 2026-10-15):
+    # one daisyUI <details> = language links (real <a hreflang>, no JS) + desktop-only theme radios (wired by theme.js, no theme-controller)
+    def li(l):
+        cur=l==lang
+        tail=CHECK if cur else f'<span class="ms-auto text-xs text-base-content/70">{LANG_CODE[l]}</span>'
+        return (f'<li><a class="min-h-11'+(' menu-active' if cur else '')+f'" href="{ROOT}{lp(l)}{"" if page=="index.html" else page}" hreflang="{HREFLANG[l]}" lang="{HREFLANG[l]}"'
+                +(' aria-current="page"' if cur else '')+f'>{e(LANG_NAME[l])} {tail}</a></li>')
+    radios=''.join(f'<input class="join-item btn btn-ghost flex-1 min-h-11 theme-opt" type="radio" name="theme" value="{v}" aria-label="{e(T[v])}" title="{e(T[v])}"'+(' checked' if v=='system' else '')+'>' for v in ('system','light','dark'))
+    aria=''.join(f' data-l-{k}="{e(T["settings_aria_"+k])}"' for k in ('system','light','dark','mobile'))
+    nav=(f'<details class="settings dropdown dropdown-end"><summary class="btn btn-outline border-base-300 min-h-11 min-w-11 px-2.5 gap-1.5 font-medium whitespace-nowrap" aria-label="{e(T["settings_aria_system"])}" aria-haspopup="true" aria-expanded="false"{aria}>'
+         f'{GLOBE}<span lang="{HREFLANG[lang]}">{e(T["lang_code"])}</span><span class="sep hidden sm:block w-px h-6 bg-base-300 mx-1" aria-hidden="true"></span><span class="ico-theme hidden sm:block size-5" aria-hidden="true"></span>{CHEV_S}</summary>'
+         '<div class="dropdown-content z-20 mt-2 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">'
+         f'<nav aria-labelledby="lang-h"><p id="lang-h" class="px-3 pt-2 pb-1 text-xs font-medium text-base-content/80">{e(T["lang_nav"])}</p><ul class="menu w-full p-0">'+''.join(li(l) for l in LANGS)+'</ul></nav>'
+         f'<div class="theme-sec hidden sm:block"><hr class="my-1.5 mx-1 border-base-300"><fieldset><legend id="theme-h" class="px-3 pt-2 pb-1 text-xs font-medium text-base-content/80">{e(T["theme"])}</legend>'
+         f'<div class="join flex w-full p-0.5 border border-base-300 rounded-field" role="radiogroup" aria-labelledby="theme-h">{radios}</div></fieldset></div></div></details>')
     attrs=(f' data-out="{e(out)}"' if out else '')+(f' data-i18n="{e(json.dumps(T["js"],ensure_ascii=False).replace(NB,chr(92)+"u00a0"))}"' if T.get('js') and page in LD_PAGES else '')
     mt=(f'<div class="mt-note bg-base-200 text-sm" role="note"><div class="mx-auto max-w-4xl px-4 sm:px-6 flex flex-wrap items-center gap-x-2"><span>{T["mt_notice_html"]}</span> <a class="link link-primary min-h-11 inline-flex items-center" href="{href(lang,"en",page)}" lang="en" hreflang="en">{e(T["read_en"])}</a></div></div>') if T.get('mt_notice_html') else ''
     return f'''<!doctype html><html lang="{HREFLANG[lang]}"><head><meta charset="utf-8">
@@ -81,7 +95,7 @@ def head(T,lang,page,title,desc,out=None):
 {ld}<script src="{P}theme.js"></script><link rel="icon" href="{P}favicon.svg"><link rel="stylesheet" href="{P}build/app.css"></head><body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased{' doc' if page in DOC_PAGES else ''}"{attrs}>
 {mt}<header class="top bg-base-100 border-b border-base-300"><div class="navbar mx-auto max-w-4xl px-3 min-[360px]:px-4 sm:px-6 gap-2 min-h-16">
 <div class="navbar-start min-w-0 w-auto grow"><a class="brand flex items-center gap-2 min-h-11 font-semibold text-sm sm:text-lg whitespace-nowrap" href="./" translate="no">{ICON}<span>Local{NB}Image{NB}Converter</span></a></div>
-<div class="navbar-end w-auto gap-3">{theme}{nav}</div></div></header>
+<div class="navbar-end w-auto">{nav}</div></div></header>
 <main class="mx-auto w-full max-w-4xl px-4 sm:px-6 py-8 sm:py-12 grow">
 '''
 def hero(h1,lede,T,pnote=''):

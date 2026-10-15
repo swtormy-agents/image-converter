@@ -5,7 +5,7 @@
 @source "../../zh/*.html";
 @source "../gen.py";
 @source "../../app.js";
-@plugin "daisyui" { themes: false; logs: false; include: properties, rootcolor, scrollbar, rootscrolllock, rootscrollgutter, svg, button, card, alert, badge, select, collapse, dropdown, menu, navbar, footer, link; }
+@plugin "daisyui" { themes: false; logs: false; include: properties, rootcolor, scrollbar, rootscrolllock, rootscrollgutter, svg, button, card, alert, badge, select, collapse, dropdown, menu, join, navbar, footer, link; }
 @theme {
   --breakpoint-sm: 37.5rem;
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "Noto Sans SC", sans-serif;
@@ -40,6 +40,10 @@
   .doc main { overflow-wrap: break-word; }
   /* in utilities, not components: the row's .btn class is itself emitted as a utility, so components would lose */
   #list .btn { @apply btn-outline min-h-11; }
+  /* daisyUI .menu removes the outline on :focus-visible; selectors v2 needs a visible ring on every stop (spec §4) */
+  .settings .menu li > a:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+  .settings .menu li > a.menu-active { @apply bg-base-200 text-base-content font-semibold; }
+  .settings.kbd .theme-opt:focus { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 }
 @layer components {
   .doc h1 { @apply text-[clamp(1.5rem,7vw,1.75rem)] sm:text-4xl font-bold tracking-tight text-balance mb-6; }
@@ -81,6 +85,21 @@
   #list .rm svg { @apply size-5 fill-none stroke-current; stroke-width: 2; stroke-linecap: round; }
   #list .pill { @apply badge badge-outline; }
   #drop.over { @apply border-primary bg-base-300; }
+  /* Header settings menu, selectors v2 variant B «Одно меню» (spec /workspace/design/selectors-v2/spec.md). Icons = SVG data URIs
+     used as masks (CSP: no inline style, no external url()); colour = currentColor. */
+  .settings { --ico-system: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='12' rx='2'/%3E%3Cpath d='M8 20h8M12 16v4'/%3E%3C/svg%3E"); --ico-light: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41'/%3E%3C/svg%3E"); --ico-dark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z'/%3E%3C/svg%3E"); }
+  .settings summary { list-style: none; }
+  .settings summary::-webkit-details-marker { display: none; }
+  .settings summary, .settings .menu a, .settings .theme-opt { @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary; }
+  .settings .ico-theme { @apply shrink-0 bg-current; mask: var(--ico-system) center / contain no-repeat; }
+  .settings summary.is-light .ico-theme { mask-image: var(--ico-light); }
+  .settings summary.is-dark .ico-theme { mask-image: var(--ico-dark); }
+  .settings .menu a { @apply flex items-center gap-2 text-sm hover:bg-base-200; }
+  .settings fieldset { @apply m-0 p-0 border-0 min-w-0; }
+  .settings .theme-opt { @apply min-w-11 h-11 border-0 shadow-none checked:bg-primary checked:text-primary-content; }
+  .settings .theme-opt::after { content: ""; @apply block size-4 bg-current; mask: var(--ico-system) center / contain no-repeat; }
+  .settings .theme-opt[value=light]::after { mask-image: var(--ico-light); }
+  .settings .theme-opt[value=dark]::after { mask-image: var(--ico-dark); }
 }
 @media (prefers-reduced-motion: no-preference) {
   .th.skeleton { animation: th-sk 1.8s ease-in-out infinite; }
