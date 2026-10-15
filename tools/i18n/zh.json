@@ -23,7 +23,7 @@
  "notes_summary_html": "<b>限制与浏览器支持</b> &middot; HEIC/HEIF 文件仅转换第一张图片；EXIF 和方向信息会被丢弃；Safari/iOS 尚未完全测试",
  "popular": "常用转换",
  "pair_link": "{A} 转 {B}",
- "foot_html": "免费、开源，完全在您的浏览器中运行。不上传、无 Cookie、无广告。本站与任何设备制造商、浏览器或软件厂商均无关联，也未获得其认可或赞助；格式名称仅作描述用途。源代码：<a href=\"https://github.com/swtormy-agents/local-image-converter\">GitHub</a>。",
+ "foot_html": "免费、开源，完全在您的浏览器中运行。不上传、无 Cookie、无广告。本站与任何设备制造商、浏览器或软件厂商均无关联，也未获得其认可或赞助；格式名称仅作描述用途。源代码：<a href=\"https://github.com/swtormy-agents/image-converter\">GitHub</a>。",
  "f_conv": "转换器",
  "f_priv": "隐私",
  "f_lic": "许可证",
