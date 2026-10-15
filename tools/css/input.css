@@ -101,6 +101,16 @@
   .settings .theme-opt[value=light]::after { mask-image: var(--ico-light); }
   .settings .theme-opt[value=dark]::after { mask-image: var(--ico-dark); }
 }
+/* Windows High Contrast / forced colours: mask-drawn icons paint with background-color, which forced colours would reset;
+   pin them to system colours so they stay visible. Inline SVG icons (globe, chevron, check) use currentColor strokes. */
+@media (forced-colors: active) {
+  .settings .ico-theme { forced-color-adjust: none; background-color: ButtonText; }
+  .settings .theme-opt::after { forced-color-adjust: none; background-color: ButtonText; }
+  .settings .ico-globe, .settings .ico-chev, .settings svg { forced-color-adjust: auto; stroke: CanvasText; }
+  .settings summary .ico-globe, .settings summary .ico-chev { stroke: ButtonText; }
+  .settings .sep { forced-color-adjust: none; background-color: ButtonText; }
+  .settings .theme-opt:checked { outline: 2px solid Highlight; }
+}
 @media (prefers-reduced-motion: no-preference) {
   .th.skeleton { animation: th-sk 1.8s ease-in-out infinite; }
   .th img { animation: th-in .15s ease-out; }
