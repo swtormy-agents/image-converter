@@ -49,13 +49,18 @@ def check_ru(T,path='ru'):
         txt=html.unescape(re.sub(r'<[^>]*>','',v)) if k.endswith('_html') else v
         assert ru_nbsp(txt)==txt, f'plain space after a short word in {path}.{k}'
 ICON='<svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7"/><path d="M8 18l4-5 3 3 2-2 3 4"/></svg>'
+CHEV='<svg class="chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>'
 X_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
 def head(T,lang,page,title,desc,out=None):
     P='' if lang=='en' else '../'
     ld=jsonld(lang,page,title,desc) if page in LD_PAGES else ''
     alts=''.join(f'<link rel="alternate" hreflang="{HREFLANG[l]}" href="{url(l,page)}">' for l in LANGS)+f'<link rel="alternate" hreflang="x-default" href="{url("en",page)}">'
-    nav='<nav aria-label="'+e(T['lang_nav'])+'"><ul class="langs">'+''.join(
-        f'<li><a href="{href(lang,l,page)}" lang="{HREFLANG[l]}" hreflang="{HREFLANG[l]}"'+(' aria-current="page"' if l==lang else '')+f'>{e(LANG_NAME[l])}</a></li>' for l in LANGS)+'</ul></nav>'
+    items=''.join(f'<li><a href="{href(lang,l,page)}" lang="{HREFLANG[l]}" hreflang="{HREFLANG[l]}"'+(' aria-current="page"' if l==lang else '')+f'>{e(LANG_NAME[l])}</a></li>' for l in LANGS)
+    ROOT=re.sub(r'^https?://[^/]+','',BASE)  # '/image-converter/': dropdown links are root-relative plain <a href>, no JS
+    dd_items=''.join(f'<li><a href="{ROOT}{lp(l)}{"" if page=="index.html" else page}" lang="{HREFLANG[l]}" hreflang="{HREFLANG[l]}"'+(' aria-current="page"' if l==lang else '')+f'>{e(LANG_NAME[l])}</a></li>' for l in LANGS)
+    # inline list (>=600px) + no-JS <details> copy for <=599px (mobile header v4, Olivia 2026-10-15); CSS shows one of them
+    nav=('<nav class="lang-inline" aria-label="'+e(T['lang_nav'])+'"><ul class="langs">'+items+'</ul></nav>'
+         +'<nav class="lang-dd" aria-label="'+e(T['lang_nav'])+f'"><details><summary><span lang="{HREFLANG[lang]}">{e(LANG_NAME[lang])}</span>{CHEV}</summary><ul class="dd-list">'+dd_items+'</ul></details></nav>')
     theme='<div class="theme"><label for="theme">'+e(T['theme'])+'</label><select id="theme" name="theme">'+''.join(f'<option value="{v}">{e(T[v])}</option>' for v in ('system','light','dark'))+'</select></div>'
     attrs=(f' data-out="{e(out)}"' if out else '')+(f' data-i18n="{e(json.dumps(T["js"],ensure_ascii=False).replace(NB,chr(92)+"u00a0"))}"' if T.get('js') and page in LD_PAGES else '')
     mt=(f'<div class="mt" role="note"><div class="wrap"><span>{T["mt_notice_html"]}</span> <a href="{href(lang,"en",page)}" lang="en" hreflang="en">{e(T["read_en"])}</a></div></div>') if T.get('mt_notice_html') else ''

@@ -100,8 +100,6 @@ footer p{margin:0 0 8px;max-width:60em}
  .hero{padding:16px 0 12px}
  .drop{padding:20px 12px}
  .wrap{padding:0 16px}
- .top{flex-direction:column;align-items:stretch}
- .prefs{justify-content:space-between}
  .field{flex:1 1 100%}
  #fmt{width:100%}
  input[type=range]{flex:1}
@@ -123,3 +121,32 @@ code{background:var(--code-bg);padding:1px 4px;border-radius:4px}
 .pop{margin-bottom:8px}
 .pop h2{margin-top:0}
 .rs .ok{white-space:normal}
+/* mobile header v4 2026-10-15 (Olivia Bennett). Desktop unchanged: the dropdown is display:none >=600px. */
+.lang-dd{display:none}
+@media (max-width:599px){
+ .wrap.top,.top{flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:8px;min-height:60px;padding-top:8px;padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:8px;position:relative;z-index:10}
+ .brand{flex:none;white-space:nowrap;gap:8px}
+ .prefs{flex:none;display:flex;margin-left:auto}
+ .theme,.lang-inline{display:none}
+ .lang-dd{display:block}
+ .lang-dd details{position:relative}
+ .lang-dd summary{list-style:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;min-width:44px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);font-size:.9375rem;cursor:pointer;white-space:nowrap}
+ .lang-dd summary::-webkit-details-marker{display:none}
+ .lang-dd summary::marker{content:""}
+ .lang-dd .chev{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+ .lang-dd details[open] .chev{transform:rotate(180deg)}
+ .lang-dd .dd-list{position:absolute;right:0;top:calc(100% + 6px);z-index:20;list-style:none;margin:0;padding:4px;min-width:160px;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+ .lang-dd .dd-list a{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:6px;color:var(--text);text-decoration:none;font-size:.9375rem;white-space:nowrap}
+ .lang-dd .dd-list a:hover{background:var(--soft)}
+ .lang-dd .dd-list a[aria-current]{font-weight:600;box-shadow:inset 3px 0 0 var(--accent)}
+}
+@media (max-width:359px){
+ .wrap{padding-left:12px;padding-right:12px}
+ .brand{font-size:.90625rem;gap:6px}
+ .brand svg{width:24px;height:24px}
+}
+@media (max-width:379px){
+ .top{gap:6px}
+ .lang-dd summary{padding:0 8px;gap:4px}
+}
+@media (prefers-reduced-motion:no-preference){.lang-dd .chev{transition:transform .15s}}
