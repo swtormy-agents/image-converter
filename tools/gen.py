@@ -165,8 +165,9 @@ for lang in LANGS:
         s=plain_meta(s)
         open(lp(lang)+p,'w',encoding='utf-8').write(s); pages.append((lang,p))
 def sources(l,p):
-    """Files whose last commit date becomes the page's <lastmod> (never the build date)."""
-    f=['tools/gen.py',f'tools/i18n/{l}.json']
+    """Content files whose last commit date becomes the page's <lastmod> (never the build date).
+    tools/gen.py is deliberately not a source: template/generator edits must not bump every page's lastmod."""
+    f=[f'tools/i18n/{l}.json']
     if p=='privacy.html': f.append('privacy.html' if l=='en' else f'tools/i18n/privacy.{l}.html')
     if p=='licenses.html': f.append('licenses.html')  # en body is embedded in ru/zh licences too
     return f
