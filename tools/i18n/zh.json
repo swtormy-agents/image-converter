@@ -49,6 +49,7 @@
   "encodeFail": "您的浏览器无法生成此输出格式。请尝试 JPEG 或 PNG。",
   "ready": "等待转换",
   "removeName": "移除 {name}",
+  "noPreview": "无预览",
   "progress": "正在转换第 {i} 个，共 {n} 个……",
   "working": "正在转换……",
   "firstOnly": "仅第一张图片",

@@ -154,3 +154,20 @@ code{background:var(--code-bg);padding:1px 4px;border-radius:4px}
  .hero h1,main.wrap h1{font-size:clamp(1.5rem,7vw,1.75rem)}
  h1,p,li,dd,td,th,code,a{overflow-wrap:break-word}
 }
+/* ===== File-list thumbnails (Olivia spec 2026-10-15, owner-approved). daisyUI build not linked yet: same rules in plain CSS with this file's tokens
+   (base-200→--page, base-content/40→--border, base-300/base-100→--line/--card). Frame 64px <600px, 96px ≥600px; fixed size = CLS 0. ===== */
+#list .row{flex-wrap:nowrap}
+#list .fn{display:flex;min-width:0;overflow-wrap:normal}
+#list .fn-b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#list .fn-e{flex-shrink:0;white-space:nowrap}
+.th{position:relative;display:grid;place-items:center;flex:none;width:64px;height:64px;overflow:hidden;border:1px solid var(--border);border-radius:8px;background:var(--page);color:var(--muted);contain:strict}
+.th img{display:block;width:100%;height:100%;object-fit:contain;object-position:center}
+.th svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.th.is-error{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.th-x{font-size:.625rem;font-weight:600;line-height:1}
+.th-alpha{background:conic-gradient(var(--line) 25%,var(--card) 0 50%,var(--line) 0 75%,var(--card) 0) 0 0/12px 12px}
+.th.skeleton{background:linear-gradient(100deg,var(--page) 40%,var(--soft) 50%,var(--page) 60%) 0 0/200% 100%}
+@media (min-width:600px){.th{width:96px;height:96px}.th svg{width:36px;height:36px}.th-x{font-size:.75rem}}
+@media (prefers-reduced-motion:no-preference){.th.skeleton{animation:th-sk 1.8s ease-in-out infinite}.th img{animation:th-in .15s ease-out}}
+@keyframes th-sk{from{background-position:150% 0}to{background-position:-50% 0}}
+@keyframes th-in{from{opacity:0}to{opacity:1}}
