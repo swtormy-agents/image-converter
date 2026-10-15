@@ -22,8 +22,16 @@ def href(cur,tl,p):
     h=('' if cur=='en' else '../')+lp(tl)+('' if p=='index.html' else p)
     return h or './'
 
+def jsonld(lang,page,title,desc):
+    d={'@context':'https://schema.org','@type':'WebApplication','name':title,'description':desc,'url':url(lang,page),'inLanguage':HREFLANG[lang],
+       'applicationCategory':'MultimediaApplication','operatingSystem':'Any','isAccessibleForFree':True,'offers':{'@type':'Offer','price':'0','priceCurrency':'USD'}}
+    j=json.dumps(d,ensure_ascii=False).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
+    return f'<script type="application/ld+json">{j}</script>\n'
+LD_PAGES={'index.html'}|{f'{a}-to-{b}.html' for a,b,*_ in PAIRS}  # JSON-LD on index and tool pages only, not privacy/licences
+
 def head(T,lang,page,title,desc,out=None):
     P='' if lang=='en' else '../'
+    ld=jsonld(lang,page,title,desc) if page in LD_PAGES else ''
     alts=''.join(f'<link rel="alternate" hreflang="{HREFLANG[l]}" href="{url(l,page)}">' for l in LANGS)+f'<link rel="alternate" hreflang="x-default" href="{url("en",page)}">'
     nav='<nav class="lang-nav" aria-label="'+e(T['lang_nav'])+'"><ul>'+''.join(
         f'<li><a href="{href(lang,l,page)}" lang="{HREFLANG[l]}" hreflang="{HREFLANG[l]}"'+(' aria-current="page"' if l==lang else '')+f'>{e(LANG_NAME[l])}</a></li>' for l in LANGS)+'</ul></nav>'
@@ -37,7 +45,7 @@ def head(T,lang,page,title,desc,out=None):
 <link rel="canonical" href="{url(lang,page)}">
 {alts}
 <meta property="og:type" content="website"><meta property="og:site_name" content="Local Image Converter"><meta property="og:locale" content="{OG_LOCALE[lang]}"><meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{url(lang,page)}">
-<script src="{P}theme.js"></script><link rel="icon" href="{P}favicon.svg"><link rel="stylesheet" href="{P}style.css"></head><body{attrs}>
+{ld}<script src="{P}theme.js"></script><link rel="icon" href="{P}favicon.svg"><link rel="stylesheet" href="{P}style.css"></head><body{attrs}>
 <header><div class="brand-wrap"><a class="brand" href="./">Local Image Converter</a><p class="tagline">{e(T['tagline'])}</p></div><div class="header-right">{nav}<div class="theme-wrap"><fieldset id="theme" class="seg" aria-describedby="theme-hint"><legend class="visually-hidden">{e(T['theme'])}</legend><input type="radio" name="theme" id="theme-system" value="system"><label for="theme-system">{e(T['system'])}</label><input type="radio" name="theme" id="theme-light" value="light"><label for="theme-light">{e(T['light'])}</label><input type="radio" name="theme" id="theme-dark" value="dark"><label for="theme-dark">{e(T['dark'])}</label></fieldset><a id="theme-hint" class="theme-hint" href="privacy.html">{e(T['theme_hint'])}</a></div></div></header>{mt}<main>
 '''
 def tool(T,P):
@@ -98,6 +106,9 @@ def selftest():
     for p,s in render('ru',T).items():
         assert bad not in s and '<script>alert' not in s, f'unescaped test string in {p}'
         assert '&lt;script&gt;alert(1)' in s, f'escaped test string missing in {p}'
+        for m in re.findall(r'<script type="application/ld\+json">(.*?)</script>',s,re.S):
+            assert '<' not in m and '>' not in m and '&' not in m, f'raw markup in JSON-LD in {p}'
+            assert json.loads(m)['name'].endswith(bad), f'JSON-LD name mismatch in {p}'
 selftest()
 
 pages=[]
