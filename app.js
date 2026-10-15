@@ -64,7 +64,7 @@ async function convert(it,type,quality){
   if(!blob||blob.type!==type){const e=new Error('encode');e.friendly=t('encodeFail','Your browser cannot create this output format. Try JPEG or PNG.');throw e;}
   return blob;
 }
-function kb(n){return n<1024*1024?Math.max(1,Math.round(n/1024))+' '+t('kb','KB'):(n/1048576).toFixed(1)+' '+t('mb','MB');}
+function kb(n){return n<1024*1024?Math.max(1,Math.round(n/1024))+'\u00a0'+t('kb','KB'):(n/1048576).toFixed(1)+'\u00a0'+t('mb','MB');}
 function add(files){
   for(const f of files){const li=document.createElement('li');li.className='file';
     li.innerHTML='<span class="file-name"></span><span class="file-meta"></span><span class="s file-status"></span><button class="rm" type="button">&times;</button>';li.querySelector('.s').textContent=t('ready','Ready');

@@ -52,5 +52,9 @@
  "privacy_desc": "How Local Image Converter handles your files: processed locally in your browser, no uploads, no cookies, no analytics. Hosting logs by GitHub Pages explained.",
  "licenses_title": "Licences and attributions – Local Image Converter",
  "licenses_desc": "Third-party licences used by Local Image Converter: libheif and libde265 (LGPL-3.0) for HEIC decoding, plus browser codec attributions.",
- "js": null
+ "js": null,
+ "_doc": "prevails_html, licenses_note_html and mt_notice_html are intentionally empty for English: the English pages are the original (no \"English prevails\" line, no licence note, no machine-translation notice). ru has no MT notice by owner decision (zh only).",
+ "prevails_html": "",
+ "licenses_note_html": "",
+ "mt_notice_html": ""
 }
