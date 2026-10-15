@@ -12,11 +12,10 @@ npm --prefix tools run check:css    # builds twice, compares sha256, checks buil
                                     # and that the output has no external url() or @import
 ```
 
-- Input: `tools/css/input.css` (`@import "tailwindcss" source(none)`, `@plugin "daisyui"`,
-  `@source` = generated pages `*.html`, `ru/*.html`, `zh/*.html`).
-- Output: `build/app.css`. It is **not linked from any page yet** (the new design is not approved);
-  the live stylesheet is still `style.css`. CSP is unchanged: the file is same-origin, so
-  `style-src 'self'` will cover it when it is linked.
+- Input: `tools/css/input.css` (`@import "tailwindcss" source(none)`, daisyUI with the «Лагуна» themes
+  `lagoon` / `lagoon-dark`, `@source` = generated pages `*.html`, `ru/*.html`, `zh/*.html`, `tools/gen.py`, `app.js`).
+- Output: `build/app.css`, linked from every page (the old hand-written `style.css` was removed with the
+  «Лагуна» redesign). CSP is unchanged: the file is same-origin, covered by `style-src 'self'`.
 - Run `python3 tools/gen.py` first when page HTML changes, then `build:css`, then `check:css`.
 
 ## Pages

@@ -1,5 +1,64 @@
+/* «Лагуна» theme (spec /workspace/design/daisyui-redesign/v1/spec.md, owner-approved 2026-10-15). */
 @import "tailwindcss" source(none);
-@plugin "daisyui";
 @source "../../*.html";
 @source "../../ru/*.html";
 @source "../../zh/*.html";
+@source "../gen.py";
+@source "../../app.js";
+@plugin "daisyui" { themes: false; logs: false; include: properties, rootcolor, scrollbar, rootscrolllock, rootscrollgutter, svg, button, card, alert, badge, select, collapse, dropdown, menu, navbar, footer, link; }
+@theme {
+  --breakpoint-sm: 37.5rem;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "Noto Sans SC", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@plugin "daisyui/theme" {
+  name: "lagoon"; default: true; prefersdark: false; color-scheme: light;
+  --color-base-100: #ffffff; --color-base-200: #f0f7f7; --color-base-300: #d5e7e7; --color-base-content: #0f2a2e;
+  --color-primary: #0f766e; --color-primary-content: #ffffff;
+  --color-secondary: #155e75; --color-secondary-content: #ffffff;
+  --color-accent: #c2410c; --color-accent-content: #ffffff;
+  --color-neutral: #134e4a; --color-neutral-content: #f0fdfa;
+  --color-info: #0369a1; --color-info-content: #ffffff; --color-success: #15803d; --color-success-content: #ffffff;
+  --color-warning: #fbbf24; --color-warning-content: #1c1917; --color-error: #b91c1c; --color-error-content: #ffffff;
+  --radius-selector: 2rem; --radius-field: 0.5rem; --radius-box: 1rem;
+  --size-selector: 0.25rem; --size-field: 0.25rem; --border: 1px; --depth: 0; --noise: 0;
+}
+@plugin "daisyui/theme" {
+  name: "lagoon-dark"; default: false; prefersdark: true; color-scheme: dark;
+  --color-base-100: #0b1d20; --color-base-200: #102a2e; --color-base-300: #1d3d42; --color-base-content: #e3f2f1;
+  --color-primary: #2dd4bf; --color-primary-content: #042f2e;
+  --color-secondary: #67e8f9; --color-secondary-content: #083344;
+  --color-accent: #fb923c; --color-accent-content: #431407;
+  --color-neutral: #1f4a4f; --color-neutral-content: #e3f2f1;
+  --color-info: #38bdf8; --color-info-content: #082f49; --color-success: #4ade80; --color-success-content: #052e16;
+  --color-warning: #fbbf24; --color-warning-content: #1c1917; --color-error: #f87171; --color-error-content: #450a0a;
+  --radius-selector: 2rem; --radius-field: 0.5rem; --radius-box: 1rem;
+  --size-selector: 0.25rem; --size-field: 0.25rem; --border: 1px; --depth: 0; --noise: 0;
+}
+@layer utilities {
+  .select { border-color: color-mix(in oklab, var(--color-base-content) 55%, transparent); }
+  .doc main { overflow-wrap: break-word; }
+}
+@layer components {
+  .doc h1 { @apply text-[clamp(1.5rem,7vw,1.75rem)] sm:text-4xl font-bold tracking-tight text-balance mb-6; }
+  .doc h2 { @apply text-xl font-semibold mt-8 mb-3; }
+  .doc h3 { @apply text-lg font-semibold mt-6 mb-2; }
+  .doc p, .doc li { @apply leading-relaxed; }
+  .doc p { @apply my-3; }
+  .doc main ul:not(.pairs) { @apply list-disc ps-6 my-3 space-y-2; }
+  .doc main ol { @apply list-decimal ps-6 my-3 space-y-2; }
+  .doc main a:not(.btn) { @apply link link-primary break-words; }
+  .doc code { @apply font-mono text-sm bg-base-200 rounded px-1 break-words; }
+  .doc .note { @apply alert alert-outline my-4 block; }
+  #list .row { @apply flex flex-wrap items-center gap-3 rounded-box border border-base-300 p-3; }
+  #list .fn { @apply font-medium break-all; }
+  #list .meta, #list .sub, #list .muted { @apply text-sm text-base-content/80; }
+  #list .ok { @apply text-success; }
+  #list .err { @apply text-error; }
+  #list .rm { @apply btn btn-ghost btn-square min-h-11 min-w-11 ms-auto; }
+  #list .pill { @apply badge badge-outline; }
+  #drop.over { @apply border-primary bg-base-300; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
