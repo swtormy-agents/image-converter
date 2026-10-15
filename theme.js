@@ -10,8 +10,8 @@
   apply();
   if(mq){var h=function(){if(choice==='system')apply();};if(mq.addEventListener)mq.addEventListener('change',h);else if(mq.addListener)mq.addListener(h);}
   document.addEventListener('DOMContentLoaded',function(){
-    var radios=document.querySelectorAll('input[name="theme"]');if(!radios.length)return;
-    for(var i=0;i<radios.length;i++){var r=radios[i];r.checked=r.value===choice;
-      r.addEventListener('change',function(e){if(!e.target.checked)return;choice=e.target.value;set(choice);apply();});}
+    var sel=document.getElementById('theme');if(!sel||sel.tagName!=='SELECT')return;
+    sel.value=choice;
+    sel.addEventListener('change',function(){choice=sel.value==='light'||sel.value==='dark'?sel.value:'system';set(choice);apply();});
   });
 })();

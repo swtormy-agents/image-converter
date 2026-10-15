@@ -14,7 +14,7 @@ OG_LOCALE={'en':'en_US','ru':'ru_RU','zh':'zh_CN'}
 OG_LINE2={'en':'Files never leave this device','ru':'Файлы не отправляются на сервер и не покидают устройство','zh':'文件不会上传到服务器'}
 OG_SEP={'en':'. ','ru':'. ','zh':'。'}
 def og_alt(T,lang):
-    a=re.sub(r'<[^>]*>','',html.unescape(T['index_h1'])).strip()  # plain text of index_h1 (U+00A0 kept)
+    a=re.sub(r'<[^>]*>','',html.unescape(T.get('og_h1',T['index_h1']))).strip()  # plain text of the h1 drawn in the OG image (og_h1, else index_h1; U+00A0 kept)
     if a[-1:] not in '.。!?！？': a+=OG_SEP[lang].rstrip(' ')
     return a+' '*OG_SEP[lang].endswith(' ')+OG_LINE2[lang]
 def og_img(lang): return BASE+f'assets/og/og-{lang}.png'  # absolute, same BASE as canonical
@@ -36,14 +36,34 @@ def jsonld(lang,page,title,desc):
     return f'<script type="application/ld+json">{j}</script>\n'
 LD_PAGES={'index.html'}|{f'{a}-to-{b}.html' for a,b,*_ in PAIRS}  # JSON-LD on index and tool pages only, not privacy/licences
 
+NB='\u00a0'
+RU_SHORT='не|и|с|в|на|к|о|у|а|из|за|по|от|до|я|ни|но|же|ли'
+def ru_nbsp(s): return re.sub(r'(?<![\w\u0400-\u04ff])('+RU_SHORT+r') ',lambda m:m.group(1)+NB,s,flags=re.I)
+PENDING_RU=('pair_desc',)  # live ru description kept until Sarah approves the new one; guard warns instead of failing
+def check_ru(T,path='ru',warn=None):
+    """ru sources must carry real U+00A0 after short words (and never the &nbsp; entity). *_html keys are checked
+    on their visible text (tags and attributes stripped, entities decoded)."""
+    warn=[] if warn is None else warn
+    for k,v in (T.items() if isinstance(T,dict) else []):
+        if isinstance(v,dict): check_ru(v,path+'.'+k,warn); continue
+        if not isinstance(v,str): continue
+        assert '&nbsp;' not in v, f'&nbsp; entity in {path}.{k}'
+        txt=html.unescape(re.sub(r'<[^>]*>','',v)) if k.endswith('_html') else v
+        if ru_nbsp(txt)!=txt:
+            if k in PENDING_RU: warn.append(f'{path}.{k}')
+            else: raise AssertionError(f'plain space after a short word in {path}.{k}')
+    return warn
+ICON='<svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7"/><path d="M8 18l4-5 3 3 2-2 3 4"/></svg>'
+X_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
 def head(T,lang,page,title,desc,out=None):
     P='' if lang=='en' else '../'
     ld=jsonld(lang,page,title,desc) if page in LD_PAGES else ''
     alts=''.join(f'<link rel="alternate" hreflang="{HREFLANG[l]}" href="{url(l,page)}">' for l in LANGS)+f'<link rel="alternate" hreflang="x-default" href="{url("en",page)}">'
-    nav='<nav class="lang-nav" aria-label="'+e(T['lang_nav'])+'"><ul>'+''.join(
+    nav='<nav aria-label="'+e(T['lang_nav'])+'"><ul class="langs">'+''.join(
         f'<li><a href="{href(lang,l,page)}" lang="{HREFLANG[l]}" hreflang="{HREFLANG[l]}"'+(' aria-current="page"' if l==lang else '')+f'>{e(LANG_NAME[l])}</a></li>' for l in LANGS)+'</ul></nav>'
-    attrs=(f' data-out="{e(out)}"' if out else '')+(f' data-i18n="{e(json.dumps(T["js"],ensure_ascii=False))}"' if T.get('js') else '')
-    mt=f'<p class="mt-notice" role="note">{T["mt_notice_html"]}</p>' if T.get('mt_notice_html') else ''
+    theme='<div class="theme"><label for="theme">'+e(T['theme'])+'</label><select id="theme" name="theme">'+''.join(f'<option value="{v}">{e(T[v])}</option>' for v in ('system','light','dark'))+'</select></div>'
+    attrs=(f' data-out="{e(out)}"' if out else '')+(f' data-i18n="{e(json.dumps(T["js"],ensure_ascii=False).replace(NB,chr(92)+"u00a0"))}"' if T.get('js') and page in LD_PAGES else '')
+    mt=(f'<div class="mt" role="note"><div class="wrap"><span>{T["mt_notice_html"]}</span> <a href="{href(lang,"en",page)}" lang="en" hreflang="en">{e(T["read_en"])}</a></div></div>') if T.get('mt_notice_html') else ''
     return f'''<!doctype html><html lang="{HREFLANG[lang]}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="{CSP}">
 <meta name="referrer" content="no-referrer">
@@ -54,47 +74,52 @@ def head(T,lang,page,title,desc,out=None):
 <meta property="og:type" content="website"><meta property="og:site_name" content="Local Image Converter"><meta property="og:locale" content="{OG_LOCALE[lang]}"><meta property="og:title" content="{e(title)}"><meta property="og:description" content="{e(desc)}"><meta property="og:url" content="{url(lang,page)}">
 <meta property="og:image" content="{og_img(lang)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/png"><meta property="og:image:alt" content="{e(og_alt(T,lang))}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{og_img(lang)}"><meta name="twitter:image:alt" content="{e(og_alt(T,lang))}">
+<meta name="color-scheme" content="light dark">
 {ld}<script src="{P}theme.js"></script><link rel="icon" href="{P}favicon.svg"><link rel="stylesheet" href="{P}style.css"></head><body{attrs}>
-<header><div class="brand-wrap"><a class="brand" href="./">Local Image Converter</a><p class="tagline">{e(T['tagline'])}</p></div><div class="header-right">{nav}<div class="theme-wrap"><fieldset id="theme" class="seg" aria-describedby="theme-hint"><legend class="visually-hidden">{e(T['theme'])}</legend><input type="radio" name="theme" id="theme-system" value="system"><label for="theme-system">{e(T['system'])}</label><input type="radio" name="theme" id="theme-light" value="light"><label for="theme-light">{e(T['light'])}</label><input type="radio" name="theme" id="theme-dark" value="dark"><label for="theme-dark">{e(T['dark'])}</label></fieldset><a id="theme-hint" class="theme-hint" href="privacy.html">{e(T['theme_hint'])}</a></div></div></header>{mt}<main>
+{mt}<header class="wrap top"><a class="brand" href="./" translate="no">{ICON}Local Image Converter</a><div class="prefs">{nav}{theme}</div></header>
+<main class="wrap">
 '''
-def tool(T,P):
-    return f'''<section class="tool" aria-label="{e(T['converter_label'])}">
-<div id="drop" class="drop" tabindex="0" role="button" aria-label="{e(T['drop'])}" aria-describedby="drop-hint"><p class="chips" aria-hidden="true"><span class="chip">HEIC</span><span class="chip">PNG</span><span class="chip">WEBP</span><span class="chip">AVIF</span></p><p class="drop-title">{e(T['drop'])}</p><p id="drop-hint" class="drop-hint">{e(T['drop_hint'])}</p><p class="drop-note">{e(T['drop_note'])}</p></div>
-<input id="files" class="visually-hidden" type="file" tabindex="-1" aria-hidden="true" multiple accept="image/*,.heic,.heif,.avif,.webp">
-<div class="opts">
-<label class="field"><span class="field-label">{e(T['out_fmt'])}</span><select id="fmt"></select></label>
-<label class="field field-q"><span class="field-label">{e(T['quality'])} <output id="qv" for="q" class="qv">90%</output></span><input id="q" type="range" min="10" max="100" value="90" aria-valuetext="90%" aria-describedby="q-hint"><span id="q-hint" class="hint">{e(T['q_hint'])}</span></label>
-<div class="actions"><button id="convert" class="btn btn-primary" disabled>{e(T['convert'])}</button><button id="zip" class="btn btn-secondary" disabled>{e(T['zip'])}</button><button id="clear" class="btn btn-ghost" disabled>{e(T['clear'])}</button></div>
-<p id="action-hint" class="hint action-hint">{e(T['action_hint'])}</p>
-</div>
-<div class="progress-row"><progress id="prog" max="1" value="0" hidden></progress><p id="status" role="status" aria-live="polite"></p></div>
-<ul id="list" class="files"></ul>
-</section>
-<noscript>{e(T['noscript'])}</noscript>
+def hero(h1,lede,T,pnote=''):
+    return (f'<section class="hero"><h1>{e(h1)}</h1><p class="lede">{e(lede)}</p><p class="lede-m">{e(T["lede_m"])}</p>'
+            +(f'<p class="pnote">{e(pnote)}</p>' if pnote else '')+'</section>\n')
+def tool(T,P,heic=True):
+    return f'''<label class="drop" for="files" id="drop"><input id="files" name="files" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"><ul class="pills" aria-hidden="true"><li>HEIC</li><li>WebP</li><li>AVIF</li><li>PNG</li><li>JPEG</li></ul><span class="dt">{e(T['drop'])}</span><span class="ds">{e(T['drop_sub'])}</span>{f'<span class="hn">{e(T["heic_note"])}</span>' if heic else ''}</label>
+<section class="controls" aria-label="{e(T['converter_label'])}"><div class="fields"><div class="field"><label for="fmt">{e(T['out_fmt'])}</label><select id="fmt" name="format"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option></select></div>
+<div class="field"><label for="q">{e(T['quality_label'])}</label><div class="qrow"><input id="q" name="quality" type="range" min="0.5" max="1" step="0.05" value="0.85"><output id="qv" for="q" class="qv">{e(T['q_default'])}</output></div></div></div>
+<div class="bar"><div class="actions"><button id="clear" type="button" class="btn sec" disabled>{e(T['clear'])}</button><button id="zip" type="button" class="btn sec" disabled>{e(T['zip'])}</button><button id="convert" type="button" class="btn pri" disabled>{e(T['js']['convert0'])}</button></div></div>
+<noscript><p>{e(T['noscript'])}</p></noscript></section>
+<section class="list" aria-labelledby="lh"><h2 id="lh" class="lh" aria-live="polite">{e(T['js']['empty'])}</h2><ul id="list"></ul></section>
 <script src="{P}config.js"></script><script src="{P}zip.js"></script><script src="{P}app.js"></script>
 '''
+def limits(T,extra=''):
+    return f'<details class="lim"><summary>{e(T["lim"])}</summary><p>{e(T["lim_p"])}</p>'+(f'<p>{e(extra)}</p>' if extra else '')+'</details>\n'
+def more(T,lede,pnote='',extra='',heic=True):
+    ps=[lede]+([pnote] if pnote else [])+([T['heic_note']] if heic else [])+[T['lim_p']]+([extra] if extra else [])
+    return f'<details class="more"><summary>{e(T["more"])}</summary>'+''.join(f'<p>{e(x)}</p>' for x in ps)+'</details>\n'
 def safari(T): return '<p class="note">'+T['safari_html']+'</p>'
-def notes_box(T): return '<details class="notes"><summary>'+T['notes_summary_html']+'</summary><p class="note">'+T['limits_html']+'</p>'+safari(T)+'</details>'
-def pairlinks(T): return '<section class="pairs"><h2>'+e(T['popular'])+'</h2><ul>'+''.join(f'<li><a href="{a}-to-{b}.html">{e(T["pair_link"].format(A=A,B=B))}</a></li>' for a,b,A,B,_ in PAIRS)+'</ul></section>'
-def foot(T): return f'</main><footer>{T["foot_html"]}<span class="foot-links"><a href="./">{e(T["f_conv"])}</a> <a href="privacy.html">{e(T["f_priv"])}</a> <a href="licenses.html">{e(T["f_lic"])}</a></span></footer></body></html>\n'
+def pairlinks(T): return '<section class="pop" aria-labelledby="pp"><h2 id="pp">'+e(T['popular'])+'</h2><ul class="pairs">'+''.join(f'<li><a href="{a}-to-{b}.html">{e(T["pair_link"].format(A=A,B=B))}</a></li>' for a,b,A,B,_ in PAIRS)+'</ul></section>'
+def foot(T):
+    links=[('./',T['f_conv']),('privacy.html',T['f_priv']),('licenses.html',T['f_lic']),('https://github.com/swtormy-agents/image-converter','GitHub')]
+    return (f'</main>\n<footer class="wrap"><p><span class="foot-x">{e(T["foot"])} </span>{e(T["legal"])}</p><ul class="flinks">'
+            +''.join(f'<li><a href="{h}">{e(t)}</a></li>' for h,t in links)+'</ul></footer></body></html>\n')
 def rebase(body):  # make relative links in English bodies work from /ru/ and /zh/
     return re.sub(r'href="(?!https?:|#|\.\./|mailto:)([^"]+)"',r'href="../\1"',body)
 
 # English privacy/licences bodies are maintained in the root HTML files (read before rewriting).
 EN_BODY={}
 for f in ('privacy.html','licenses.html'):
-    s=open(f,encoding='utf-8').read(); body=re.search(r'<main>\n(.*?)</main>',s,re.S).group(1)
-    body=re.sub(r'<p class="note"><b>Browser testing:</b>.*?</p>\n','',body); body=re.sub(r'<section class="pairs">.*?</section>\n','',body)
+    s=open(f,encoding='utf-8').read(); body=re.search(r'<main[^>]*>\n(.*?)</main>',s,re.S).group(1)
+    body=re.sub(r'<p class="note"><b>Browser testing:</b>.*?</p>\n','',body); body=re.sub(r'<section class="(?:pairs|pop)".*?</section>\n','',body)
     EN_BODY[f]=body
 
 def render(lang,T):
     P='' if lang=='en' else '../'; out={}
     out['index.html']=(head(T,lang,'index.html',T['index_title'],T['index_desc'])
-     +f'<h1>{e(T["index_h1"])}</h1>\n<p class="lead">{T["index_lead_html"]}</p>\n'+tool(T,P)+notes_box(T)+'\n'+pairlinks(T)+'\n'+foot(T))
+     +hero(T['index_h1'],T['index_lead'],T)+tool(T,P)+limits(T)+more(T,T['index_lead'])+pairlinks(T)+'\n'+foot(T))
     for a,b,A,B,mime in PAIRS:
-        p=f'{a}-to-{b}.html'
+        p=f'{a}-to-{b}.html'; lead=T['pair_lead'].format(A=A,B=B); dec=T['notes'][a] if a=='heic' else ''
         out[p]=(head(T,lang,p,T['pair_title'].format(A=A,B=B),T['pair_desc'].format(A=A,B=B),mime)
-         +f'<h1>{e(T["pair_h1"].format(A=A,B=B))}</h1>\n<p class="lead">{e(T["pair_lead"].format(A=A,B=B))}</p>\n'+tool(T,P)+f'<p class="pair-notes">{e(T["notes"][a])} {e(T["outn"][b])} {e(T["other_formats"])}</p>\n'+notes_box(T)+'\n'+pairlinks(T)+'\n'+foot(T))
+         +hero(T['pair_h1'].format(A=A,B=B),lead,T,T['outn'][b])+tool(T,P,a=='heic')+limits(T,dec)+more(T,lead,T['outn'][b],dec,a=='heic')+pairlinks(T)+'\n'+foot(T))
     if lang=='en': pb,lb=EN_BODY['privacy.html'],EN_BODY['licenses.html']
     else:
         pb='<p class="note prevails">'+T['prevails_html']+'</p>\n'+open(f'tools/i18n/privacy.{lang}.html',encoding='utf-8').read()
@@ -119,14 +144,22 @@ def selftest():
             assert '<' not in m and '>' not in m and '&' not in m, f'raw markup in JSON-LD in {p}'
             assert json.loads(m)['name'].endswith(bad), f'JSON-LD name mismatch in {p}'
 selftest()
+for _w in check_ru(I18N["ru"]): print("warning (pending approval, not changed):",_w)
 for _l in LANGS:
     assert os.path.isfile(f'assets/og/og-{_l}.png'), f'missing og image for {_l}'
     _a=og_alt(I18N[_l],_l); assert '..' not in _a and '。。' not in _a and '.。' not in _a, f'double punctuation in og alt {_l}'
 
+def plain_meta(s):
+    """U+00A0 only in visible text: plain spaces inside tags/attributes, <title> and JSON-LD."""
+    s=re.sub(r'<[^>]*>',lambda m:m.group(0).replace(NB,' '),s)
+    s=re.sub(r'(<title>|<script type="application/ld\+json">)(.*?)(</title>|</script>)',lambda m:m.group(1)+m.group(2).replace(NB,' ')+m.group(3),s,flags=re.S)
+    for m in re.finditer(r'<[^>]*>|<title>.*?</title>|<script type="application/ld\+json">.*?</script>',s,re.S): assert NB not in m.group(0), 'U+00A0 in markup/meta'
+    return s
 pages=[]
 for lang in LANGS:
     if lang!='en': os.makedirs(lang,exist_ok=True)
     for p,s in render(lang,I18N[lang]).items():
+        s=plain_meta(s)
         open(lp(lang)+p,'w',encoding='utf-8').write(s); pages.append((lang,p))
 def sources(l,p):
     """Files whose last commit date becomes the page's <lastmod> (never the build date)."""
