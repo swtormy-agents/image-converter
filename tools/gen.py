@@ -36,6 +36,7 @@ def jsonld(lang,page,title,desc):
        'applicationCategory':'MultimediaApplication','operatingSystem':'Any','isAccessibleForFree':True,'offers':{'@type':'Offer','price':'0','priceCurrency':'USD'}}
     j=json.dumps(d,ensure_ascii=False).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
     return f'<script type="application/ld+json">{j}</script>\n'
+DOC_PAGES={'privacy.html','licenses.html'}
 LD_PAGES={'index.html'}|{f'{a}-to-{b}.html' for a,b,*_ in PAIRS}  # JSON-LD on index and tool pages only, not privacy/licences
 
 NB='\u00a0'
@@ -52,21 +53,20 @@ def check_ru(T,path='ru'):
         assert '&nbsp;' not in v, f'&nbsp; entity in {path}.{k}'
         txt=html.unescape(re.sub(r'<[^>]*>','',v)) if k.endswith('_html') else v
         assert ru_nbsp(txt)==txt, f'plain space after a short word in {path}.{k}'
-ICON='<svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7"/><path d="M8 18l4-5 3 3 2-2 3 4"/></svg>'
-CHEV='<svg class="chev" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>'
+ICON='<svg viewBox="0 0 28 28" aria-hidden="true" class="size-7 shrink-0 text-primary" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="26" height="26" rx="7"/><path d="M8 18l4-5 3 3 2-2 3 4"/></svg>'
+CHEV='<svg class="size-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>'
 X_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
 def head(T,lang,page,title,desc,out=None):
     P='' if lang=='en' else '../'
     ld=jsonld(lang,page,title,desc) if page in LD_PAGES else ''
     alts=''.join(f'<link rel="alternate" hreflang="{HREFLANG[l]}" href="{url(l,page)}">' for l in LANGS)+f'<link rel="alternate" hreflang="x-default" href="{url("en",page)}">'
     ROOT=re.sub(r'^https?://[^/]+','',BASE)  # '/image-converter/': language links (inline list and dropdown) are root-relative plain <a href>, no JS
-    items=''.join(f'<li><a href="{ROOT}{lp(l)}{"" if page=="index.html" else page}" lang="{HREFLANG[l]}" hreflang="{HREFLANG[l]}"'+(' aria-current="page"' if l==lang else '')+f'>{e(LANG_NAME[l])}</a></li>' for l in LANGS)
-    # inline list (>=600px) + no-JS <details> copy for <=599px (mobile header v4, Olivia 2026-10-15); CSS shows one of them
-    nav=('<nav class="lang-inline" aria-label="'+e(T['lang_nav'])+'"><ul class="langs">'+items+'</ul></nav>'
-         +'<nav class="lang-dd" aria-label="'+e(T['lang_nav'])+f'"><details><summary><span lang="{HREFLANG[lang]}">{e(LANG_NAME[lang])}</span>{CHEV}</summary><ul class="dd-list">'+items+'</ul></details></nav>')
-    theme='<div class="theme"><label for="theme">'+e(T['theme'])+'</label><select id="theme" name="theme">'+''.join(f'<option value="{v}">{e(T[v])}</option>' for v in ('system','light','dark'))+'</select></div>'
+    items=''.join(f'<li><a class="min-h-12'+(' menu-active' if l==lang else '')+f'" href="{ROOT}{lp(l)}{"" if page=="index.html" else page}" lang="{HREFLANG[l]}" hreflang="{HREFLANG[l]}"'+(' aria-current="page"' if l==lang else '')+f'>{e(LANG_NAME[l])}</a></li>' for l in LANGS)
+    # «Лагуна» (spec 2026-10-15): one no-JS daisyUI <details> dropdown on all widths (inline list removed)
+    nav=('<nav class="lang-dd" aria-label="'+e(T['lang_nav'])+f'"><details class="dropdown dropdown-end"><summary class="btn btn-ghost min-h-11 min-w-11 px-3 font-medium whitespace-nowrap"><span lang="{HREFLANG[lang]}">{e(LANG_NAME[lang])}</span>{CHEV}</summary><ul class="dd-list dropdown-content menu bg-base-100 rounded-box border border-base-300 z-20 w-44 p-2 shadow-lg">'+items+'</ul></details></nav>')
+    theme='<div class="theme hidden sm:flex items-center gap-2"><label for="theme" class="text-sm text-base-content/80">'+e(T['theme'])+'</label><select id="theme" name="theme" class="select select-sm w-auto min-h-11">'+''.join(f'<option value="{v}">{e(T[v])}</option>' for v in ('system','light','dark'))+'</select></div>'
     attrs=(f' data-out="{e(out)}"' if out else '')+(f' data-i18n="{e(json.dumps(T["js"],ensure_ascii=False).replace(NB,chr(92)+"u00a0"))}"' if T.get('js') and page in LD_PAGES else '')
-    mt=(f'<div class="mt" role="note"><div class="wrap"><span>{T["mt_notice_html"]}</span> <a href="{href(lang,"en",page)}" lang="en" hreflang="en">{e(T["read_en"])}</a></div></div>') if T.get('mt_notice_html') else ''
+    mt=(f'<div class="mt-note bg-base-200 text-sm" role="note"><div class="mx-auto max-w-4xl px-4 sm:px-6 flex flex-wrap items-center gap-x-2"><span>{T["mt_notice_html"]}</span> <a class="link link-primary min-h-11 inline-flex items-center" href="{href(lang,"en",page)}" lang="en" hreflang="en">{e(T["read_en"])}</a></div></div>') if T.get('mt_notice_html') else ''
     return f'''<!doctype html><html lang="{HREFLANG[lang]}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="{CSP}">
 <meta name="referrer" content="no-referrer">
@@ -78,33 +78,39 @@ def head(T,lang,page,title,desc,out=None):
 <meta property="og:image" content="{og_img(lang)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/png"><meta property="og:image:alt" content="{e(og_alt(T,lang))}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{og_img(lang)}"><meta name="twitter:image:alt" content="{e(og_alt(T,lang))}">
 <meta name="color-scheme" content="light dark">
-{ld}<script src="{P}theme.js"></script><link rel="icon" href="{P}favicon.svg"><link rel="stylesheet" href="{P}style.css"></head><body{attrs}>
-{mt}<header class="wrap top"><a class="brand" href="./" translate="no">{ICON}Local Image Converter</a><div class="prefs">{nav}{theme}</div></header>
-<main class="wrap">
+{ld}<script src="{P}theme.js"></script><link rel="icon" href="{P}favicon.svg"><link rel="stylesheet" href="{P}build/app.css"></head><body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased{' doc' if page in DOC_PAGES else ''}"{attrs}>
+{mt}<header class="top bg-base-100 border-b border-base-300"><div class="navbar mx-auto max-w-4xl px-4 sm:px-6 gap-2 min-h-16">
+<div class="navbar-start min-w-0 w-auto grow"><a class="brand flex items-center gap-2 min-h-11 font-semibold text-base sm:text-lg whitespace-nowrap" href="./" translate="no">{ICON}<span>Local{NB}Image{NB}Converter</span></a></div>
+<div class="navbar-end w-auto gap-3">{theme}{nav}</div></div></header>
+<main class="mx-auto w-full max-w-4xl px-4 sm:px-6 py-8 sm:py-12 grow">
 '''
 def hero(h1,lede,T,pnote=''):
-    return (f'<section class="hero"><h1>{e(h1)}</h1><p class="lede">{e(lede)}</p><p class="lede-m">{e(T["lede_m"])}</p>'
-            +(f'<p class="pnote">{e(pnote)}</p>' if pnote else '')+'</section>\n')
+    return (f'<section class="intro"><h1 class="text-3xl sm:text-5xl font-bold tracking-tight text-balance max-w-3xl">{e(h1)}</h1><p class="lede hidden sm:block mt-4 text-lg text-base-content/80 max-w-2xl text-pretty">{e(lede)}</p><p class="lede-m sm:hidden mt-3 text-base-content/80">{e(T["lede_m"])}</p>'
+            +(f'<p class="pnote hidden sm:flex alert alert-outline mt-4 text-sm">{e(pnote)}</p>' if pnote else '')+'</section>\n')
 def tool(T,P,heic=True):
-    return f'''<label class="drop" for="files" id="drop"><input id="files" name="files" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"><ul class="pills" aria-hidden="true"><li>HEIC</li><li>WebP</li><li>AVIF</li><li>PNG</li><li>JPEG</li></ul><span class="dt">{e(T['drop'])}</span><span class="ds">{e(T['drop_sub'])}</span>{f'<span class="hn">{e(T["heic_note"])}</span>' if heic else ''}</label>
-<section class="controls" aria-label="{e(T['converter_label'])}"><div class="fields"><div class="field"><label for="fmt">{e(T['out_fmt'])}</label><select id="fmt" name="format"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option></select></div>
-<div class="field"><label for="q">{e(T['quality_label'])}</label><div class="qrow"><input id="q" name="quality" type="range" min="0.5" max="1" step="0.05" value="0.85"><output id="qv" for="q" class="qv">{e(T['q_default'])}</output></div></div></div>
-<div class="bar"><div class="actions"><button id="clear" type="button" class="btn sec" disabled>{e(T['clear'])}</button><button id="zip" type="button" class="btn sec" disabled>{e(T['zip'])}</button><button id="convert" type="button" class="btn pri" disabled>{e(T['js']['convert0'])}</button></div></div>
+    return f'''<label class="drop mt-6 flex flex-col items-center gap-2 rounded-box border-2 border-dashed border-base-content/60 bg-base-200 px-4 py-8 sm:py-12 text-center cursor-pointer hover:border-primary focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary" for="files" id="drop"><input class="sr-only" id="files" name="files" type="file" multiple accept="image/*,.heic,.heif,.avif,.webp"><ul class="pills flex flex-wrap justify-center gap-2 mb-1" aria-hidden="true"><li class="badge badge-outline">HEIC</li><li class="badge badge-outline">WebP</li><li class="badge badge-outline">AVIF</li><li class="badge badge-outline">PNG</li><li class="badge badge-outline">JPEG</li></ul><span class="dt text-lg font-semibold text-balance">{e(T['drop'])}</span><span class="ds hidden sm:block text-sm text-base-content/80">{e(T['drop_sub'])}</span>{f'<span class="hn hidden sm:block text-sm text-base-content/80 max-w-xl text-pretty">{e(T["heic_note"])}</span>' if heic else ''}</label>
+<section class="controls card card-border bg-base-100 mt-4 p-4 sm:p-6" aria-label="{e(T['converter_label'])}"><div class="fields grid gap-4 sm:grid-cols-2"><div class="field flex flex-col gap-2"><label for="fmt" class="text-sm font-medium">{e(T['out_fmt'])}</label><select id="fmt" name="format" class="select w-full min-h-11"><option value="image/jpeg">JPEG</option><option value="image/png">PNG</option></select></div>
+<div class="field flex flex-col gap-2"><label for="q" class="text-sm font-medium">{e(T['quality_label'])}</label><div class="qrow flex items-center gap-3 min-h-11"><input class="grow h-11 accent-primary cursor-pointer" id="q" name="quality" type="range" min="0.5" max="1" step="0.05" value="0.85"><output id="qv" for="q" class="qv font-medium tabular-nums w-10 text-end">{e(T['q_default'])}</output></div></div></div>
+<div class="bar mt-4"><div class="actions flex flex-col-reverse sm:flex-row gap-2 sm:justify-end"><button id="clear" type="button" class="btn sec btn-outline min-h-11" disabled>{e(T['clear'])}</button><button id="zip" type="button" class="btn sec btn-outline min-h-11" disabled>{e(T['zip'])}</button><button id="convert" type="button" class="btn pri btn-primary min-h-11 px-6" disabled>{e(T['js']['convert0'])}</button></div></div>
 <noscript><p>{e(T['noscript'])}</p></noscript></section>
-<section class="list" aria-labelledby="lh"><h2 id="lh" class="lh" aria-live="polite">{e(T['js']['empty'])}</h2><ul id="list"></ul></section>
+<section class="results mt-4" aria-labelledby="lh"><h2 id="lh" class="lh text-center text-sm font-normal text-base-content/80 py-3" aria-live="polite">{e(T['js']['empty'])}</h2><ul id="list" class="flex flex-col gap-2"></ul></section>
 <script src="{P}config.js"></script><script src="{P}zip.js"></script><script src="{P}app.js"></script>
 '''
 def limits(T,extra=''):
-    return f'<details class="lim"><summary>{e(T["lim"])}</summary><p>{e(T["lim_p"])}</p>'+(f'<p>{e(extra)}</p>' if extra else '')+'</details>\n'
+    return f'<details class="lim hidden sm:block collapse collapse-arrow bg-base-200 mt-4"><summary class="collapse-title font-semibold min-h-11">{e(T["lim"])}</summary><div class="collapse-content text-sm space-y-2"><p>{e(T["lim_p"])}</p>'+(f'<p>{e(extra)}</p>' if extra else '')+'</div></details>\n'
 def more(T,lede,pnote='',extra='',heic=True):
     ps=[lede]+([pnote] if pnote else [])+([T['heic_note']] if heic else [])+[T['lim_p']]+([extra] if extra else [])
-    return f'<details class="more"><summary>{e(T["more"])}</summary>'+''.join(f'<p>{e(x)}</p>' for x in ps)+'</details>\n'
+    return f'<details class="more sm:hidden collapse collapse-arrow bg-base-200 mt-4"><summary class="collapse-title font-semibold min-h-11">{e(T["more"])}</summary><div class="collapse-content text-sm space-y-2">'+''.join(f'<p>{e(x)}</p>' for x in ps)+'</div></details>\n'
 def safari(T): return '<p class="note">'+T['safari_html']+'</p>'
-def pairlinks(T): return '<section class="pop" aria-labelledby="pp"><h2 id="pp">'+e(T['popular'])+'</h2><ul class="pairs">'+''.join(f'<li><a href="{a}-to-{b}.html">{e(T["pair_link"].format(A=A,B=B))}</a></li>' for a,b,A,B,_ in PAIRS)+'</ul></section>'
+def pairlinks(T,page=''):  # «Лагуна»: pair links as daisyUI buttons; the current tool page is btn-primary + aria-current
+    def li(a,b,A,B):
+        cur=page==f'{a}-to-{b}.html'
+        return f'<li><a class="btn {"btn-primary" if cur else "btn-outline"} min-h-11 w-full justify-start font-medium" href="{a}-to-{b}.html"'+(' aria-current="page"' if cur else '')+f'>{e(T["pair_link"].format(A=A,B=B))}</a></li>'
+    return '<section class="pop mt-12" aria-labelledby="pp"><h2 id="pp" class="text-2xl font-semibold">'+e(T['popular'])+'</h2><ul class="pairs grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">'+''.join(li(a,b,A,B) for a,b,A,B,_ in PAIRS)+'</ul></section>'
 def foot(T):
     links=[('./',T['f_conv']),('privacy.html',T['f_priv']),('licenses.html',T['f_lic']),('https://github.com/swtormy-agents/image-converter','GitHub')]
-    return (f'</main>\n<footer class="wrap"><p><span class="foot-x">{e(T["foot"])} </span>{e(T["legal"])}</p><ul class="flinks">'
-            +''.join(f'<li><a href="{h}">{e(t)}</a></li>' for h,t in links)+'</ul></footer></body></html>\n')
+    return (f'</main>\n<footer class="bg-base-200 mt-8"><div class="footer sm:footer-horizontal mx-auto max-w-4xl px-4 sm:px-6 py-6 text-base-content"><p class="max-w-xl text-sm"><span class="foot-x hidden sm:inline">{e(T["foot"])} </span>{e(T["legal"])}</p><ul class="flinks flex flex-wrap gap-x-4">'
+            +''.join(f'<li><a class="link link-hover min-h-11 min-w-11 inline-flex items-center justify-center" href="{h}">{e(t)}</a></li>' for h,t in links)+'</ul></div></footer></body></html>\n')
 def rebase(body):  # make relative links in English bodies work from /ru/ and /zh/
     return re.sub(r'href="(?!https?:|#|\.\./|mailto:)([^"]+)"',r'href="../\1"',body)
 
@@ -112,7 +118,7 @@ def rebase(body):  # make relative links in English bodies work from /ru/ and /z
 EN_BODY={}
 for f in ('privacy.html','licenses.html'):
     s=open(f,encoding='utf-8').read(); body=re.search(r'<main[^>]*>\n(.*?)</main>',s,re.S).group(1)
-    body=re.sub(r'<p class="note"><b>Browser testing:</b>.*?</p>\n','',body); body=re.sub(r'<section class="(?:pairs|pop)".*?</section>\n','',body)
+    body=re.sub(r'<p class="note"><b>Browser testing:</b>.*?</p>\n','',body); body=re.sub(r'<section class="(?:pairs|pop)[^"]*".*?</section>\n','',body)
     EN_BODY[f]=body
 
 def render(lang,T):
@@ -123,7 +129,7 @@ def render(lang,T):
         p=f'{a}-to-{b}.html'; lead=T['pair_lead'].format(A=A,B=B); dec=T['notes'][a] if a in('heic','avif') else ''  # decoder/browser-support note (Limitations + mobile «Подробнее»)
         pm=T.get('pair_meta',{}).get(p,{})  # approved per-page overrides
         out[p]=(head(T,lang,p,pm.get('title',T['pair_title'].format(A=A,B=B)),pm.get('desc',T['pair_desc'].format(A=A,B=B)),mime)
-         +hero(T['pair_h1'].format(A=A,B=B),lead,T,T['outn'][b])+tool(T,P,a=='heic')+limits(T,dec)+more(T,lead,T['outn'][b],dec,a=='heic')+pairlinks(T)+'\n'+foot(T))
+         +hero(T['pair_h1'].format(A=A,B=B),lead,T,T['outn'][b])+tool(T,P,a=='heic')+limits(T,dec)+more(T,lead,T['outn'][b],dec,a=='heic')+pairlinks(T,p)+'\n'+foot(T))
     if lang=='en': pb,lb=EN_BODY['privacy.html'],EN_BODY['licenses.html']
     else:
         pb='<p class="note prevails">'+T['prevails_html']+'</p>\n'+open(f'tools/i18n/privacy.{lang}.html',encoding='utf-8').read()
