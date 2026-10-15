@@ -63,7 +63,7 @@ def head(T,lang,page,title,desc,out=None):
     ROOT=re.sub(r'^https?://[^/]+','',BASE)  # '/image-converter/': language links (inline list and dropdown) are root-relative plain <a href>, no JS
     items=''.join(f'<li><a class="min-h-12'+(' menu-active' if l==lang else '')+f'" href="{ROOT}{lp(l)}{"" if page=="index.html" else page}" lang="{HREFLANG[l]}" hreflang="{HREFLANG[l]}"'+(' aria-current="page"' if l==lang else '')+f'>{e(LANG_NAME[l])}</a></li>' for l in LANGS)
     # «Лагуна» (spec 2026-10-15): one no-JS daisyUI <details> dropdown on all widths (inline list removed)
-    nav=('<nav class="lang-dd" aria-label="'+e(T['lang_nav'])+f'"><details class="dropdown dropdown-end"><summary class="btn btn-ghost min-h-11 min-w-11 px-3 font-medium whitespace-nowrap"><span lang="{HREFLANG[lang]}">{e(LANG_NAME[lang])}</span>{CHEV}</summary><ul class="dd-list dropdown-content menu bg-base-100 rounded-box border border-base-300 z-20 w-44 p-2 shadow-lg">'+items+'</ul></details></nav>')
+    nav=('<nav class="lang-dd" aria-label="'+e(T['lang_nav'])+f'"><details class="dropdown dropdown-end"><summary class="btn btn-ghost min-h-11 min-w-11 px-2 sm:px-3 font-medium whitespace-nowrap"><span lang="{HREFLANG[lang]}">{e(LANG_NAME[lang])}</span>{CHEV}</summary><ul class="dd-list dropdown-content menu bg-base-100 rounded-box border border-base-300 z-20 w-44 p-2 shadow-lg">'+items+'</ul></details></nav>')
     theme='<div class="theme hidden sm:flex items-center gap-2"><label for="theme" class="text-sm text-base-content/80">'+e(T['theme'])+'</label><select id="theme" name="theme" class="select select-sm w-auto min-h-11">'+''.join(f'<option value="{v}">{e(T[v])}</option>' for v in ('system','light','dark'))+'</select></div>'
     attrs=(f' data-out="{e(out)}"' if out else '')+(f' data-i18n="{e(json.dumps(T["js"],ensure_ascii=False).replace(NB,chr(92)+"u00a0"))}"' if T.get('js') and page in LD_PAGES else '')
     mt=(f'<div class="mt-note bg-base-200 text-sm" role="note"><div class="mx-auto max-w-4xl px-4 sm:px-6 flex flex-wrap items-center gap-x-2"><span>{T["mt_notice_html"]}</span> <a class="link link-primary min-h-11 inline-flex items-center" href="{href(lang,"en",page)}" lang="en" hreflang="en">{e(T["read_en"])}</a></div></div>') if T.get('mt_notice_html') else ''
@@ -79,8 +79,8 @@ def head(T,lang,page,title,desc,out=None):
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{og_img(lang)}"><meta name="twitter:image:alt" content="{e(og_alt(T,lang))}">
 <meta name="color-scheme" content="light dark">
 {ld}<script src="{P}theme.js"></script><link rel="icon" href="{P}favicon.svg"><link rel="stylesheet" href="{P}build/app.css"></head><body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased{' doc' if page in DOC_PAGES else ''}"{attrs}>
-{mt}<header class="top bg-base-100 border-b border-base-300"><div class="navbar mx-auto max-w-4xl px-4 sm:px-6 gap-2 min-h-16">
-<div class="navbar-start min-w-0 w-auto grow"><a class="brand flex items-center gap-2 min-h-11 font-semibold text-base sm:text-lg whitespace-nowrap" href="./" translate="no">{ICON}<span>Local{NB}Image{NB}Converter</span></a></div>
+{mt}<header class="top bg-base-100 border-b border-base-300"><div class="navbar mx-auto max-w-4xl px-3 min-[360px]:px-4 sm:px-6 gap-2 min-h-16">
+<div class="navbar-start min-w-0 w-auto grow"><a class="brand flex items-center gap-2 min-h-11 font-semibold text-sm sm:text-lg whitespace-nowrap" href="./" translate="no">{ICON}<span>Local{NB}Image{NB}Converter</span></a></div>
 <div class="navbar-end w-auto gap-3">{theme}{nav}</div></div></header>
 <main class="mx-auto w-full max-w-4xl px-4 sm:px-6 py-8 sm:py-12 grow">
 '''

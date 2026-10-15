@@ -53,6 +53,7 @@
   "dl": "Download",
   "dlName": "Download {name}",
   "removeName": "Remove {name}",
+  "noPreview": "No preview",
   "progress": "Converting {i} of {n}…",
   "working": "Converting…",
   "firstOnly": "first image only",

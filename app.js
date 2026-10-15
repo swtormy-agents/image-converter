@@ -74,20 +74,54 @@ function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=
 function fmtExt(){return OUT.find(o=>o[0]===fmtSel.value)[2].toUpperCase();}
 function srcExt(f){const m=f.name.match(/\.([^.]+)$/);return m?m[1].toUpperCase().replace('JPEG','JPG'):'?';}
 function setPill(it){it.pill.textContent=srcExt(it.file)+' \u2192 '+fmtExt();}
+// ---- File-list thumbnails (Olivia spec 2026-10-15): local blob: only, sequential, lazy, downscaled, never full-size in DOM.
+// Icon paths from lagoon/previews.py (IMG, FILE); '_' = space inside an attribute value.
+const IMG_D=[['rect','x=3 y=4 width=18 height=16 rx=2'],['circle','cx=9 cy=10 r=1.6'],['path','d=M4_18l5-5_4_4_2-2_5_4']];
+const FILE_D=[['path','d=M6_3h8l4_4v14H6z'],['path','d=M14_3v4h4'],['path','d=M9_13l6_6M15_13l-6_6']];
+function icon(parts){const s=document.createElementNS(NS,'svg');s.setAttribute('viewBox','0 0 24 24');s.setAttribute('focusable','false');s.setAttribute('aria-hidden','true');
+  for(const [tg,a] of parts){const n=document.createElementNS(NS,tg);for(const kv of a.split(' ')){const i=kv.indexOf('=');n.setAttribute(kv.slice(0,i),kv.slice(i+1).replace(/_/g,' '));}s.appendChild(n);}return s;}
+const MAX_PX=50e6,mqD=window.matchMedia?matchMedia('(min-width:600px)'):null;
+function thSize(){return ((mqD&&mqD.matches)?96:64)*Math.min(Math.max(window.devicePixelRatio||1,1),2);}
+function hasAlpha(f){return /\.(png|webp|avif|gif)$/i.test(f.name)||/image\/(png|webp|avif|gif)/i.test(f.type);}
+function thLoading(it){const d=el('div','th skeleton');d.setAttribute('aria-hidden','true');d.appendChild(icon(IMG_D));it.th.replaceWith(d);it.th=d;}
+function thError(it){const d=el('div','th is-error');d.setAttribute('aria-hidden','true');d.append(icon(FILE_D),el('span','th-x',srcExt(it.file)));it.th.replaceWith(d);it.th=d;
+  it.noPv=true;setRs(it,[...it.rs.childNodes].filter(n=>!n.classList||!n.classList.contains('npv')));}
+function setRs(it,nodes){it.rs.textContent='';if(it.noPv)it.rs.append(el('span','muted npv',t('noPreview','No preview')+' \u00b7 '));it.rs.append(...nodes);}
+async function makeThumb(it){
+  const src=await decode(it.file);  // same path as conversion: native, then the existing lazy HEIC decoder (respects HEIC_WASM_ENABLED)
+  try{const w=src.naturalWidth||src.width,h=src.naturalHeight||src.height;if(!w||!h||w*h>MAX_PX)throw new Error('too large');
+    const k=Math.min(1,thSize()/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));
+    const ctx=c.getContext('2d');ctx.imageSmoothingQuality='high';ctx.drawImage(src,0,0,c.width,c.height);
+    const a=hasAlpha(it.file),b=await new Promise(r=>c.toBlob(r,a?'image/png':'image/jpeg',0.8));c.width=c.height=0;
+    if(!b)throw new Error('thumb encode');return {b,a};
+  }finally{if(src.close)src.close();if(src.src&&src.src.startsWith('blob:'))URL.revokeObjectURL(src.src);if(src.width&&src.getContext)src.width=src.height=0;}
+}
+const thQ=[];let thRun=false;
+async function pump(){if(thRun)return;thRun=true;
+  while(thQ.length){const it=thQ.shift();if(!items.includes(it))continue;
+    try{const r=await makeThumb(it);if(!items.includes(it))continue;
+      const u=URL.createObjectURL(r.b),d=el('div','th'+(r.a?' th-alpha':'')),im=document.createElement('img');
+      im.alt='';im.width=96;im.height=96;im.decoding='async';im.src=u;d.appendChild(im);it.th.replaceWith(d);it.th=d;it.thUrl=u;
+    }catch(e){if(items.includes(it))thError(it);}}
+  thRun=false;}
+const io=window.IntersectionObserver?new IntersectionObserver(es=>{for(const x of es)if(x.isIntersecting){io.unobserve(x.target);const it=items.find(i=>i.li===x.target);if(it){thQ.push(it);pump();}}},{rootMargin:'300px 0px'}):null;
+function queueThumb(it){if(io)io.observe(it.li);else{thQ.push(it);pump();}}
+function dropItem(it){if(io)io.unobserve(it.li);if(it.url)URL.revokeObjectURL(it.url);if(it.thUrl){URL.revokeObjectURL(it.thUrl);it.thUrl=null;}}
+function splitName(n){const i=n.lastIndexOf('.'),f=el('span','fn');f.append(el('span','fn-b',i>0?n.slice(0,i):n),el('span','fn-e',i>0?n.slice(i):''));return f;}
 function add(files){
   for(const f of files){const li=el('li','row'),meta=el('div','meta'),sub=el('span','sub'),rs=el('span','rs');
-    meta.append(el('span','fn',f.name));sub.append(el('span',null,kb(f.size)));const pill=el('span','pill');sub.append(pill);meta.append(sub,rs);
-    rs.append(el('span','muted',t('ready','Ready')));
+    meta.append(splitName(f.name));sub.append(el('span',null,kb(f.size)));const pill=el('span','pill');sub.append(pill);meta.append(sub,rs);
+    
     const rm=el('button','rm');rm.type='button';rm.setAttribute('aria-label',t('removeName','Remove {name}',{name:f.name}));rm.appendChild(svgX());
-    li.setAttribute('translate','no');li.append(meta,rm);
-    const it={file:f,li,rs,rm,pill,out:null,a:null};setPill(it);
-    rm.addEventListener('click',()=>{if(busy)return;if(it.url)URL.revokeObjectURL(it.url);li.remove();items=items.filter(x=>x!==it);syncUI();if(items.length)status.textContent=tp('added',items.length,'{n} file added','{n} files added');});
-    list.appendChild(li);items.push(it);}
+    const th=el('div','th');li.setAttribute('translate','no');li.append(th,meta,rm);
+    const it={file:f,li,rs,rm,pill,th,out:null,a:null,thUrl:null,noPv:false};setPill(it);thLoading(it);setRs(it,[el('span','muted',t('ready','Ready'))]);
+    rm.addEventListener('click',()=>{if(busy)return;dropItem(it);li.remove();items=items.filter(x=>x!==it);syncUI();if(items.length)status.textContent=tp('added',items.length,'{n} file added','{n} files added');});
+    list.appendChild(li);items.push(it);queueThumb(it);}
   if(items.length){status.textContent=tp('added',items.length,'{n} file added','{n} files added');btn.disabled=false;}
   syncUI();
 }
 fmtSel.addEventListener('change',()=>items.forEach(it=>{if(!it.out)setPill(it);}));
-clearBtn.addEventListener('click',()=>{items.forEach(i=>{if(i.url)URL.revokeObjectURL(i.url);});items=[];list.textContent='';syncUI();});
+clearBtn.addEventListener('click',()=>{items.forEach(dropItem);items=[];thQ.length=0;list.textContent='';syncUI();});
 $('files').addEventListener('change',e=>{add(e.target.files);e.target.value='';});
 const drop=$('drop');
 ['dragenter','dragover'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.add('over');}));
@@ -95,13 +129,13 @@ const drop=$('drop');
 drop.addEventListener('drop',e=>add(e.dataTransfer.files));
 btn.addEventListener('click',async()=>{
   if(!items.length)return;busy=true;btn.disabled=true;syncUI();const type=fmtSel.value,ext=OUT.find(o=>o[0]===type)[2],qual=Number(q.value);let ok=0;
-  for(let i=0;i<items.length;i++){const it=items[i],rs=it.rs;status.textContent=t('progress','Converting {i} of {n}…',{i:i+1,n:items.length});rs.textContent='';rs.append(el('span','muted',t('working','Converting…')));
+  for(let i=0;i<items.length;i++){const it=items[i],rs=it.rs;status.textContent=t('progress','Converting {i} of {n}…',{i:i+1,n:items.length});setRs(it,[el('span','muted',t('working','Converting…'))]);
     if(it.a){it.a.remove();it.a=null;}it.out=null;setPill(it);
     try{const b=await convert(it,type,qual);const name=it.file.name.replace(/\.[^.]+$/,'')+'.'+ext;it.out={name,blob:b};
       if(it.url)URL.revokeObjectURL(it.url);it.url=URL.createObjectURL(b);
-      rs.textContent='';rs.append(el('span','ok',t('done','Done')+' \u00b7 '+kb(b.size)+(isHeif(it.file)?' \u00b7 '+t('firstOnly','first image only'):'')));
+      setRs(it,[el('span','ok',t('done','Done')+' \u00b7 '+kb(b.size)+(isHeif(it.file)?' \u00b7 '+t('firstOnly','first image only'):''))]);
       const a=el('a','btn sec sm',t('dl','Download'));a.href=it.url;a.download=name;a.setAttribute('aria-label',t('dlName','Download {name}',{name}));it.li.insertBefore(a,it.rm);it.a=a;ok++;
-    }catch(e){it.out=null;rs.textContent='';rs.append(el('span','err',e.friendly||t('readErr',"Couldn't read this file. Is it a supported image (HEIC, HEIF, WebP, AVIF, PNG, JPEG)?")));}
+    }catch(e){it.out=null;setRs(it,[el('span','err',e.friendly||t('readErr',"Couldn't read this file. Is it a supported image (HEIC, HEIF, WebP, AVIF, PNG, JPEG)?"))]);}
   }
   busy=false;status.textContent=t('converted','{ok} of {n} converted',{ok,n:items.length});btn.disabled=true;syncUI();
 });
