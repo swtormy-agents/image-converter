@@ -39,7 +39,7 @@ LD_PAGES={'index.html'}|{f'{a}-to-{b}.html' for a,b,*_ in PAIRS}  # JSON-LD on i
 NB='\u00a0'
 RU_SHORT='не|и|с|в|на|к|о|у|а|из|за|по|от|до|я|ни|но|же|ли'
 def ru_nbsp(s): return re.sub(r'(?<![\w\u0400-\u04ff])('+RU_SHORT+r') ',lambda m:m.group(1)+NB,s,flags=re.I)
-PENDING_RU=('pair_desc',)  # live ru description kept until Sarah approves the new one; guard warns instead of failing
+PENDING_RU=('pair_desc',)  # shared ru pair template (7 non-HEIC→JPG pairs) still awaits approval; heic-to-jpg uses pair_meta. Guard warns instead of failing
 def check_ru(T,path='ru',warn=None):
     """ru sources must carry real U+00A0 after short words (and never the &nbsp; entity). *_html keys are checked
     on their visible text (tags and attributes stripped, entities decoded)."""
@@ -118,7 +118,8 @@ def render(lang,T):
      +hero(T['index_h1'],T['index_lead'],T)+tool(T,P)+limits(T)+more(T,T['index_lead'])+pairlinks(T)+'\n'+foot(T))
     for a,b,A,B,mime in PAIRS:
         p=f'{a}-to-{b}.html'; lead=T['pair_lead'].format(A=A,B=B); dec=T['notes'][a] if a=='heic' else ''
-        out[p]=(head(T,lang,p,T['pair_title'].format(A=A,B=B),T['pair_desc'].format(A=A,B=B),mime)
+        pm=T.get('pair_meta',{}).get(p,{})  # approved per-page overrides
+        out[p]=(head(T,lang,p,pm.get('title',T['pair_title'].format(A=A,B=B)),pm.get('desc',T['pair_desc'].format(A=A,B=B)),mime)
          +hero(T['pair_h1'].format(A=A,B=B),lead,T,T['outn'][b])+tool(T,P,a=='heic')+limits(T,dec)+more(T,lead,T['outn'][b],dec,a=='heic')+pairlinks(T)+'\n'+foot(T))
     if lang=='en': pb,lb=EN_BODY['privacy.html'],EN_BODY['licenses.html']
     else:
