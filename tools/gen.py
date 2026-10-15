@@ -5,7 +5,7 @@ plain text and HTML-escaped here) and tools/i18n/privacy.<lang>.html."""
 # NOTE: only writes the pages listed below; never touches google*.html (Search Console verification file, keep, not in sitemap).
 import re,os,html,json,subprocess
 os.chdir(os.path.join(os.path.dirname(__file__),'..'))
-BASE='https://swtormy-agents.github.io/local-image-converter/'
+BASE='https://noclaudkit.com/image-converter/'
 CSP="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
 LANGS=['en','ru','zh']
 HREFLANG={'en':'en','ru':'ru','zh':'zh-Hans'}
