@@ -39,20 +39,15 @@ LD_PAGES={'index.html'}|{f'{a}-to-{b}.html' for a,b,*_ in PAIRS}  # JSON-LD on i
 NB='\u00a0'
 RU_SHORT='не|и|с|в|на|к|о|у|а|из|за|по|от|до|я|ни|но|же|ли'
 def ru_nbsp(s): return re.sub(r'(?<![\w\u0400-\u04ff])('+RU_SHORT+r') ',lambda m:m.group(1)+NB,s,flags=re.I)
-PENDING_RU=('pair_desc',)  # shared ru pair template (7 non-HEIC→JPG pairs) still awaits approval; heic-to-jpg uses pair_meta. Guard warns instead of failing
-def check_ru(T,path='ru',warn=None):
+def check_ru(T,path='ru'):
     """ru sources must carry real U+00A0 after short words (and never the &nbsp; entity). *_html keys are checked
     on their visible text (tags and attributes stripped, entities decoded)."""
-    warn=[] if warn is None else warn
     for k,v in (T.items() if isinstance(T,dict) else []):
-        if isinstance(v,dict): check_ru(v,path+'.'+k,warn); continue
+        if isinstance(v,dict): check_ru(v,path+'.'+k); continue
         if not isinstance(v,str): continue
         assert '&nbsp;' not in v, f'&nbsp; entity in {path}.{k}'
         txt=html.unescape(re.sub(r'<[^>]*>','',v)) if k.endswith('_html') else v
-        if ru_nbsp(txt)!=txt:
-            if k in PENDING_RU: warn.append(f'{path}.{k}')
-            else: raise AssertionError(f'plain space after a short word in {path}.{k}')
-    return warn
+        assert ru_nbsp(txt)==txt, f'plain space after a short word in {path}.{k}'
 ICON='<svg viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="7"/><path d="M8 18l4-5 3 3 2-2 3 4"/></svg>'
 X_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
 def head(T,lang,page,title,desc,out=None):
@@ -145,7 +140,7 @@ def selftest():
             assert '<' not in m and '>' not in m and '&' not in m, f'raw markup in JSON-LD in {p}'
             assert json.loads(m)['name'].endswith(bad), f'JSON-LD name mismatch in {p}'
 selftest()
-for _w in check_ru(I18N["ru"]): print("warning (pending approval, not changed):",_w)
+check_ru(I18N["ru"])
 for _l in LANGS:
     assert os.path.isfile(f'assets/og/og-{_l}.png'), f'missing og image for {_l}'
     _a=og_alt(I18N[_l],_l); assert '..' not in _a and '。。' not in _a and '.。' not in _a, f'double punctuation in og alt {_l}'
