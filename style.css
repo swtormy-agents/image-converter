@@ -131,3 +131,19 @@ header{flex-wrap:nowrap;align-items:flex-start}
 .theme-wrap{gap:4px}
 @media (max-width:640px){header{flex-wrap:wrap;gap:12px}.theme-wrap{align-items:flex-start;width:100%}.seg label{min-height:44px;padding:0 16px;flex:1}.seg{width:auto}}
 main{max-width:920px;box-sizing:border-box}
+/* ===== i18n: language switcher, MT notice, zh typography ===== */
+.header-right{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;justify-content:flex-end;min-width:0}
+.lang-nav ul{display:flex;align-items:center;flex-wrap:wrap;margin:0;padding:0;list-style:none}
+.lang-nav li+li::before{content:"·";color:var(--muted);padding:0 2px}
+.lang-nav a{display:inline-flex;align-items:center;min-height:36px;min-width:24px;padding:0 6px;border-radius:7px;font-size:14px;font-weight:600;color:var(--muted);text-decoration:none}
+.lang-nav a:hover{color:var(--fg);text-decoration:underline}
+.lang-nav a[aria-current=page]{background:var(--chip-bg);color:var(--fg)}
+.lang-nav a:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.mt-notice{max-width:880px;box-sizing:border-box;margin:8px auto 0;padding:8px 14px;border-radius:8px;background:#fdf3d2;color:#5a4200;font-size:14px}
+:root[data-theme=dark] .mt-notice{background:#2a2410;color:#f2d27a}
+@media (max-width:960px){.mt-notice{margin-left:20px;margin-right:20px}}
+:lang(zh-Hans){font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;line-height:1.7;letter-spacing:normal}
+:lang(zh-Hans) i,:lang(zh-Hans) em{font-style:normal}
+:lang(zh-Hans) code{font-family:var(--mono)}
+.btn{overflow-wrap:anywhere}
+@media (max-width:640px){.header-right{width:100%;justify-content:flex-start;flex-direction:column;gap:8px}.lang-nav a{min-height:44px;padding:0 12px}.seg label{padding:0 10px;min-width:0}.seg{width:100%;box-sizing:border-box}}
