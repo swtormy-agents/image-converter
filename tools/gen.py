@@ -3,7 +3,7 @@
 Translations live in tools/i18n/<lang>.json (keys ending in _html are authored markup, everything else is
 plain text and HTML-escaped here) and tools/i18n/privacy.<lang>.html."""
 # NOTE: only writes the pages listed below; never touches google*.html (Search Console verification file, keep, not in sitemap).
-import re,os,html,json
+import re,os,html,json,subprocess
 os.chdir(os.path.join(os.path.dirname(__file__),'..'))
 BASE='https://swtormy-agents.github.io/local-image-converter/'
 CSP="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
@@ -116,7 +116,17 @@ for lang in LANGS:
     if lang!='en': os.makedirs(lang,exist_ok=True)
     for p,s in render(lang,I18N[lang]).items():
         open(lp(lang)+p,'w',encoding='utf-8').write(s); pages.append((lang,p))
+def sources(l,p):
+    """Files whose last commit date becomes the page's <lastmod> (never the build date)."""
+    f=['tools/gen.py',f'tools/i18n/{l}.json']
+    if p=='privacy.html': f.append('privacy.html' if l=='en' else f'tools/i18n/privacy.{l}.html')
+    if p=='licenses.html': f.append('licenses.html')  # en body is embedded in ru/zh licences too
+    return f
+def lastmod(l,p):
+    d=subprocess.run(['git','log','-1','--format=%cs','--',*sources(l,p)],capture_output=True,text=True,check=True).stdout.strip()
+    assert re.fullmatch(r'\d{4}-\d{2}-\d{2}',d), f'no git date for {l}/{p}'
+    return d
 open('sitemap.xml','w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
- +''.join(f'<url><loc>{url(l,p)}</loc>'+''.join(f'<xhtml:link rel="alternate" hreflang="{HREFLANG[x]}" href="{url(x,p)}"/>' for x in LANGS)+f'<xhtml:link rel="alternate" hreflang="x-default" href="{url("en",p)}"/></url>\n' for l,p in pages)+'</urlset>\n')
+ +''.join(f'<url><loc>{url(l,p)}</loc><lastmod>{lastmod(l,p)}</lastmod>'+''.join(f'<xhtml:link rel="alternate" hreflang="{HREFLANG[x]}" href="{url(x,p)}"/>' for x in LANGS)+f'<xhtml:link rel="alternate" hreflang="x-default" href="{url("en",p)}"/></url>\n' for l,p in pages)+'</urlset>\n')
 open('robots.txt','w').write(f'User-agent: *\nAllow: /\nSitemap: {BASE}sitemap.xml\n')
 print(len(pages),'pages')
