@@ -11,14 +11,14 @@ LANGS=['en','ru','zh']
 HREFLANG={'en':'en','ru':'ru','zh':'zh-Hans'}
 LANG_NAME={'en':'English','ru':'Русский','zh':'中文'}
 OG_LOCALE={'en':'en_US','ru':'ru_RU','zh':'zh_CN'}
-OG_LINE2={'en':'Files never leave this device','ru':'Файлы не отправляются на сервер и не покидают устройство','zh':'文件不会上传到服务器'}
 OG_SEP={'en':'. ','ru':'. ','zh':'。'}
 def og_alt(T,lang):
     a=re.sub(r'<[^>]*>','',html.unescape(T.get('og_h1',T['index_h1']))).strip()  # plain text of the h1 drawn in the OG image (og_h1, else index_h1; U+00A0 kept)
     if a[-1:] not in '.。!?！？': a+=OG_SEP[lang].rstrip(' ')
-    return a+' '*OG_SEP[lang].endswith(' ')+OG_LINE2[lang]
+    return a+' '*OG_SEP[lang].endswith(' ')+T['tagline']  # i18n key tagline = second line of the OG image
 def og_img(lang): return BASE+f'assets/og/og-{lang}.png'  # absolute, same BASE as canonical
 I18N={l:json.load(open(f'tools/i18n/{l}.json',encoding='utf-8')) for l in LANGS}
+for _l in LANGS: assert '\u00a0' not in I18N[_l]['tagline'] and '&nbsp;' not in I18N[_l]['tagline'], f'U+00A0 in tagline {_l}'
 PAIRS=[('heic','jpg','HEIC','JPG','image/jpeg'),('heic','png','HEIC','PNG','image/png'),('webp','png','WebP','PNG','image/png'),('webp','jpg','WebP','JPG','image/jpeg'),
 ('avif','jpg','AVIF','JPG','image/jpeg'),('avif','png','AVIF','PNG','image/png'),('png','webp','PNG','WebP','image/webp'),('jpg','webp','JPG','WebP','image/webp')]
 PAGES=['index.html']+[f'{a}-to-{b}.html' for a,b,*_ in PAIRS]+['privacy.html','licenses.html']
@@ -37,6 +37,7 @@ def jsonld(lang,page,title,desc):
 LD_PAGES={'index.html'}|{f'{a}-to-{b}.html' for a,b,*_ in PAIRS}  # JSON-LD on index and tool pages only, not privacy/licences
 
 NB='\u00a0'
+PLAIN_KEYS={'tagline'}  # attribute/OG-image only text (og:image:alt): plain spaces, never U+00A0
 RU_SHORT='не|и|с|в|на|к|о|у|а|из|за|по|от|до|я|ни|но|же|ли'
 def ru_nbsp(s): return re.sub(r'(?<![\w\u0400-\u04ff])('+RU_SHORT+r') ',lambda m:m.group(1)+NB,s,flags=re.I)
 def check_ru(T,path='ru'):
@@ -45,6 +46,7 @@ def check_ru(T,path='ru'):
     for k,v in (T.items() if isinstance(T,dict) else []):
         if isinstance(v,dict): check_ru(v,path+'.'+k); continue
         if not isinstance(v,str): continue
+        if k in PLAIN_KEYS: assert NB not in v and '&nbsp;' not in v, f'U+00A0 in plain-space key {path}.{k}'; continue
         assert '&nbsp;' not in v, f'&nbsp; entity in {path}.{k}'
         txt=html.unescape(re.sub(r'<[^>]*>','',v)) if k.endswith('_html') else v
         assert ru_nbsp(txt)==txt, f'plain space after a short word in {path}.{k}'
