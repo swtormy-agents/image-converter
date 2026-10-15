@@ -146,6 +146,9 @@ def selftest():
             assert json.loads(m)['name'].endswith(bad), f'JSON-LD name mismatch in {p}'
 selftest()
 check_ru(I18N["ru"])
+_pv=re.sub(r'<code>.*?</code>|<[^>]+>',' ',open('tools/i18n/privacy.ru.html',encoding='utf-8').read(),flags=re.S)  # visible text only
+assert '&nbsp;' not in _pv and ru_nbsp(_pv)==_pv and ' —' not in _pv, 'privacy.ru.html: plain space after a short word or before an em dash'
+
 for _l in LANGS:
     assert os.path.isfile(f'assets/og/og-{_l}.png'), f'missing og image for {_l}'
     _a=og_alt(I18N[_l],_l); assert '..' not in _a and '。。' not in _a and '.。' not in _a, f'double punctuation in og alt {_l}'
