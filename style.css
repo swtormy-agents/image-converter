@@ -150,9 +150,7 @@ code{background:var(--code-bg);padding:1px 4px;border-radius:4px}
  .lang-dd summary{padding:0 8px;gap:4px}
 }
 @media (prefers-reduced-motion:no-preference){.lang-dd .chev{transition:transform .15s}}
-/* 320px overflow fix 2026-10-15 (card PVTI_lAHOFGWij84BnE8dzhA9qOg; Olivia/Nathan/Megan). Mobile only, desktop unchanged. */
 @media (max-width:599px){
  .hero h1,main.wrap>h1{font-size:clamp(1.5rem,7vw,2rem)}
- h1,h2,h3,p,li,summary,dd,dt,td,th{hyphens:auto;-webkit-hyphens:auto}
- p,li,dd,td,th,footer,code,a{overflow-wrap:anywhere}
+ h1,p,li,dd,td,th,code,a{overflow-wrap:break-word}
 }
