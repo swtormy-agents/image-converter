@@ -151,6 +151,6 @@ code{background:var(--code-bg);padding:1px 4px;border-radius:4px}
 }
 @media (prefers-reduced-motion:no-preference){.lang-dd .chev{transition:transform .15s}}
 @media (max-width:599px){
- .hero h1,main.wrap>h1{font-size:clamp(1.5rem,7vw,1.75rem)}
+ .hero h1,main.wrap h1{font-size:clamp(1.5rem,7vw,1.75rem)}
  h1,p,li,dd,td,th,code,a{overflow-wrap:break-word}
 }
