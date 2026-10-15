@@ -62,7 +62,7 @@ def head(T,lang,page,title,desc,out=None):
     nav='<nav aria-label="'+e(T['lang_nav'])+'"><ul class="langs">'+''.join(
         f'<li><a href="{href(lang,l,page)}" lang="{HREFLANG[l]}" hreflang="{HREFLANG[l]}"'+(' aria-current="page"' if l==lang else '')+f'>{e(LANG_NAME[l])}</a></li>' for l in LANGS)+'</ul></nav>'
     theme='<div class="theme"><label for="theme">'+e(T['theme'])+'</label><select id="theme" name="theme">'+''.join(f'<option value="{v}">{e(T[v])}</option>' for v in ('system','light','dark'))+'</select></div>'
-    attrs=(f' data-out="{e(out)}"' if out else '')+(f' data-i18n="{e(json.dumps(T["js"],ensure_ascii=False))}"' if T.get('js') and page in LD_PAGES else '')
+    attrs=(f' data-out="{e(out)}"' if out else '')+(f' data-i18n="{e(json.dumps(T["js"],ensure_ascii=False).replace(NB,chr(92)+"u00a0"))}"' if T.get('js') and page in LD_PAGES else '')
     mt=(f'<div class="mt" role="note"><div class="wrap"><span>{T["mt_notice_html"]}</span> <a href="{href(lang,"en",page)}" lang="en" hreflang="en">{e(T["read_en"])}</a></div></div>') if T.get('mt_notice_html') else ''
     return f'''<!doctype html><html lang="{HREFLANG[lang]}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="{CSP}">
@@ -149,10 +149,17 @@ for _l in LANGS:
     assert os.path.isfile(f'assets/og/og-{_l}.png'), f'missing og image for {_l}'
     _a=og_alt(I18N[_l],_l); assert '..' not in _a and '。。' not in _a and '.。' not in _a, f'double punctuation in og alt {_l}'
 
+def plain_meta(s):
+    """U+00A0 only in visible text: plain spaces inside tags/attributes, <title> and JSON-LD."""
+    s=re.sub(r'<[^>]*>',lambda m:m.group(0).replace(NB,' '),s)
+    s=re.sub(r'(<title>|<script type="application/ld\+json">)(.*?)(</title>|</script>)',lambda m:m.group(1)+m.group(2).replace(NB,' ')+m.group(3),s,flags=re.S)
+    for m in re.finditer(r'<[^>]*>|<title>.*?</title>|<script type="application/ld\+json">.*?</script>',s,re.S): assert NB not in m.group(0), 'U+00A0 in markup/meta'
+    return s
 pages=[]
 for lang in LANGS:
     if lang!='en': os.makedirs(lang,exist_ok=True)
     for p,s in render(lang,I18N[lang]).items():
+        s=plain_meta(s)
         open(lp(lang)+p,'w',encoding='utf-8').write(s); pages.append((lang,p))
 def sources(l,p):
     """Files whose last commit date becomes the page's <lastmod> (never the build date)."""
