@@ -3,7 +3,7 @@
 Translations live in tools/i18n/<lang>.json (keys ending in _html are authored markup, everything else is
 plain text and HTML-escaped here) and tools/i18n/privacy.<lang>.html."""
 # NOTE: only writes the pages listed below; never touches google*.html (Search Console verification file, keep, not in sitemap).
-import re,os,html,json,subprocess
+import re,os,html,json,subprocess,hashlib
 os.chdir(os.path.join(os.path.dirname(__file__),'..'))
 BASE='https://noclaudkit.com/image-converter/'
 CSP="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
@@ -16,7 +16,9 @@ def og_alt(T,lang):
     a=re.sub(r'<[^>]*>','',html.unescape(T.get('og_h1',T['index_h1']))).strip()  # plain text of the h1 drawn in the OG image (og_h1, else index_h1; U+00A0 kept)
     if a[-1:] not in '.。!?！？': a+=OG_SEP[lang].rstrip(' ')
     return a+' '*OG_SEP[lang].endswith(' ')+T['tagline']  # i18n key tagline = second line of the OG image
-def og_img(lang): return BASE+f'assets/og/og-{lang}.png'  # absolute, same BASE as canonical
+def og_img(lang):  # absolute, same BASE as canonical; ?v= = sha256[:8] of the PNG in repo (cache-bust, deterministic; GH Pages ignores query)
+    with open(f'assets/og/og-{lang}.png','rb') as f: v=hashlib.sha256(f.read()).hexdigest()[:8]
+    return BASE+f'assets/og/og-{lang}.png?v={v}'
 I18N={l:json.load(open(f'tools/i18n/{l}.json',encoding='utf-8')) for l in LANGS}
 for _l in LANGS: assert '\u00a0' not in I18N[_l]['tagline'] and '&nbsp;' not in I18N[_l]['tagline'], f'U+00A0 in tagline {_l}'
 PAIRS=[('heic','jpg','HEIC','JPG','image/jpeg'),('heic','png','HEIC','PNG','image/png'),('webp','png','WebP','PNG','image/png'),('webp','jpg','WebP','JPG','image/jpeg'),
