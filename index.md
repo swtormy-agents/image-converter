@@ -7,7 +7,7 @@ Use it: https://noclaudkit.com/image-converter/
 ## Formats
 
 - Input: HEIC/HEIF, WebP, AVIF, PNG, JPEG. Other image types the browser can decode natively may also work.
-- Output: JPEG and PNG in every browser. WebP and AVIF appear in the format list only if your browser can encode them (WebP: Chrome, Edge, Firefox; Safari may not encode WebP).
+- Output: JPEG and PNG in every browser. WebP and AVIF appear in the format list only if your browser can encode them.
 
 ## How it works
 

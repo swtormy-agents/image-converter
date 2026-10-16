@@ -1,4 +1,4 @@
-# Privacy notice – Local Image Converter
+# Privacy notice — Local Image Converter
 
 HTML version: https://noclaudkit.com/image-converter/privacy.html
 

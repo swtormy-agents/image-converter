@@ -1,6 +1,6 @@
 # Local Image Converter
 
-> Free, open-source image converter that runs entirely in the browser. Files never leave the device: decoding and encoding happen locally, nothing is uploaded, no cookies, no analytics, no ads, no account.
+> Free, open-source image converter that runs entirely in the browser. Files never leave your device: decoding and encoding happen locally, nothing is uploaded, no cookies, no analytics, no ads, no account.
 
 - Input formats: HEIC/HEIF, WebP, AVIF, PNG, JPEG (any other image type the browser itself can decode may also work).
 - Output formats: JPEG and PNG always; WebP and AVIF are offered only if the visitor's browser can encode them.

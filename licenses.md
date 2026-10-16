@@ -1,4 +1,4 @@
-# Licences and attributions – Local Image Converter
+# Licences and attributions — Local Image Converter
 
 HTML version: https://noclaudkit.com/image-converter/licenses.html
 
