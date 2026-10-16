@@ -1,0 +1,35 @@
+# Local Image Converter
+
+> Free, open-source image converter that runs entirely in the browser. Files never leave your device: decoding and encoding happen locally, nothing is uploaded, no cookies, no analytics, no ads, no account.
+
+- Input formats: HEIC/HEIF, WebP, AVIF, PNG, JPEG (any other image type the browser itself can decode may also work).
+- Output formats: JPEG and PNG always; WebP and AVIF are offered only if the visitor's browser can encode them.
+- Quality slider for JPEG, WebP and AVIF: 0.5 to 1.0, step 0.05, default 0.85. PNG output is lossless (slider has no effect).
+- Batch: multiple files at once; each result downloads separately, or all results as one ZIP (converted-images.zip) when two or more succeed.
+- No file-size limit is set by the tool; practical limits are the device's memory and the browser's canvas limits.
+- Limitations: EXIF metadata (camera, GPS, date) is dropped and EXIF orientation is not applied, so some photos may appear rotated; for multi-image HEIC/HEIF only the first image is converted; JPEG output turns transparent areas white.
+- HEIC/HEIF: if the browser cannot decode it natively, a WebAssembly build of libheif (LGPL-3.0) is loaded from the same site and runs locally.
+- Tested in Chrome/Chromium, Firefox and a WebKit engine build; Safari on macOS and iOS/iPadOS is not fully tested yet.
+- Languages: English, Russian (https://noclaudkit.com/image-converter/ru/), Chinese (https://noclaudkit.com/image-converter/zh/).
+
+## Docs
+
+- [Converter overview](https://noclaudkit.com/image-converter/index.md): what the tool does, formats, options, limitations
+- [Privacy notice](https://noclaudkit.com/image-converter/privacy.md): how files and data are handled
+- [Licences](https://noclaudkit.com/image-converter/licenses.md): third-party components and licences
+
+## Conversion pages
+
+- [HEIC to JPG](https://noclaudkit.com/image-converter/heic-to-jpg.html)
+- [HEIC to PNG](https://noclaudkit.com/image-converter/heic-to-png.html)
+- [WebP to PNG](https://noclaudkit.com/image-converter/webp-to-png.html)
+- [WebP to JPG](https://noclaudkit.com/image-converter/webp-to-jpg.html)
+- [AVIF to JPG](https://noclaudkit.com/image-converter/avif-to-jpg.html)
+- [AVIF to PNG](https://noclaudkit.com/image-converter/avif-to-png.html)
+- [PNG to WebP](https://noclaudkit.com/image-converter/png-to-webp.html)
+- [JPG to WebP](https://noclaudkit.com/image-converter/jpg-to-webp.html)
+
+## Optional
+
+- [Source code](https://github.com/swtormy-agents/image-converter): MIT licence
+- [Converter (HTML)](https://noclaudkit.com/image-converter/)
