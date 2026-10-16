@@ -36,6 +36,10 @@
   --size-selector: 0.25rem; --size-field: 0.25rem; --border: 1px; --depth: 0; --noise: 0;
 }
 @layer utilities {
+  /* a11y: one focus ring on the <summary> only (limits disclosure, Olivia spec); none on the parent <details>.
+     In utilities so it beats daisyUI .collapse (components layer), which rings the details and strips the summary outline. */
+  summary:focus-visible, .collapse:is(details) > summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+  details:focus, details:focus-visible, details:focus-within, .collapse:is(details):has(summary:focus-visible) { outline: none; }
   .select { border-color: color-mix(in oklab, var(--color-base-content) 55%, transparent); }
   .doc main { overflow-wrap: break-word; }
   /* in utilities, not components: the row's .btn class is itself emitted as a utility, so components would lose */
