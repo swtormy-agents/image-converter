@@ -24,7 +24,7 @@
  "f_priv": "隐私",
  "f_lic": "许可证",
  "index_title": "图片格式转换器｜HEIC、WebP、AVIF 转 JPG/PNG｜Local Image Converter",
- "index_desc": "直接在浏览器中将 HEIC/HEIF、WebP、AVIF、PNG 和 JPEG 图片转换为 JPG、PNG 或 WebP。文件在您的设备上处理，不会上传到服务器。免费、无广告、无 Cookie。",
+ "index_desc": "直接在浏览器中将 HEIC/HEIF、WebP、AVIF、PNG 和 JPEG 图片转换为 JPG、PNG、WebP 或 AVIF（WebP 和 AVIF 需浏览器支持编码）。文件在您的设备上处理，不会上传到服务器。免费、无广告、无 Cookie。",
  "index_h1": "图片格式转换：HEIC、WebP、AVIF 转 JPG/PNG",
  "pair_title": "{A} 转 {B} 在线转换器｜免费、浏览器本地转换、文件不上传到服务器",
  "pair_desc": "在线将 {A} 图片免费转换为 {B}，在浏览器中本地完成。支持批量转换、质量调节和 ZIP 下载。文件保留在您的设备上，不会上传到服务器；无广告、无 Cookie。",
@@ -32,7 +32,7 @@
  "notes": {
   "heic": "如果浏览器无法打开 HEIC，会从本站加载 WebAssembly 解码器（libheif），并在本地运行。",
   "webp": "WebP 由浏览器内置解码器解码。",
-  "avif": "AVIF 由浏览器内置解码器解码（当前版本的 Chrome、Edge、Firefox 和 Safari 均支持）。",
+  "avif": "如果您的浏览器支持 AVIF，即可打开 AVIF 文件：由浏览器内置解码器解码。",
   "png": "PNG 由浏览器解码。",
   "jpg": "JPEG 由浏览器解码。"
  },
@@ -71,7 +71,7 @@
   "dlName": "下载 {name}",
   "dec": "."
  },
- "index_lead": "文件仅在您的设备上处理，不会上传到服务器。如果浏览器支持 WebP 编码，也可输出 WebP。",
+ "index_lead": "文件仅在您的设备上处理，不会上传到服务器。如果浏览器支持 WebP 或 AVIF 编码，也可输出 WebP 或 AVIF。",
  "pair_lead": "输出格式已预设为 {B}。转换在您的设备上进行，文件不会上传到服务器。",
  "lede_m": "文件不会上传到服务器。",
  "more": "详情与限制",
