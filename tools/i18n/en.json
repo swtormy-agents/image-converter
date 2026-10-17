@@ -32,7 +32,7 @@
  "notes": {
   "heic": "If your browser cannot open HEIC, a WebAssembly decoder (libheif) loads from this site and runs locally.",
   "webp": "WebP is decoded by your browser's built-in decoder.",
-  "avif": "AVIF opens if your browser supports AVIF: it is decoded by your browser's built-in decoder.",
+  "avif": "AVIF opens if your browser supports it: the browser decodes the file itself.",
   "png": "PNG is decoded by your browser.",
   "jpg": "JPEG is decoded by your browser."
  },

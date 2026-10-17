@@ -32,7 +32,7 @@
  "notes": {
   "heic": "如果浏览器无法打开 HEIC，会从本站加载 WebAssembly 解码器（libheif），并在本地运行。",
   "webp": "WebP 由浏览器内置解码器解码。",
-  "avif": "如果您的浏览器支持 AVIF，即可打开 AVIF 文件：由浏览器内置解码器解码。",
+  "avif": "只要您的浏览器支持 AVIF，即可打开 AVIF 文件，解码由浏览器内置解码器完成。",
   "png": "PNG 由浏览器解码。",
   "jpg": "JPEG 由浏览器解码。"
  },
