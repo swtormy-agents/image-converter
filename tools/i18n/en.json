@@ -20,7 +20,7 @@
  "safari_html": "<b>Browser testing:</b> tested in Chrome/Chromium, Firefox and a WebKit engine build. Safari on macOS and iOS/iPadOS is not fully tested yet; if something does not work there, please report it on GitHub.",
  "popular": "Popular conversions",
  "pair_link": "{A} to {B}",
- "f_conv": "Converter",
+ "f_conv": "Image converter",
  "f_priv": "Privacy",
  "f_lic": "Licences",
  "index_title": "Local Image Converter – HEIC, WebP, AVIF to JPG/PNG in your browser",
@@ -64,7 +64,8 @@
   "progress": "Converting {i} of {n}…",
   "working": "Converting…",
   "firstOnly": "first image only",
-  "dec": "."
+  "dec": ".",
+  "removed_zero": "Removed {name}. The list is empty"
  },
  "_doc": "prevails_html, licenses_note_html and mt_notice_html are intentionally empty for English: the English pages are the original (no \"English prevails\" line, no licence note, no machine-translation notice). ru has no MT notice by owner decision (zh only).",
  "prevails_html": "",

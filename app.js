@@ -131,12 +131,12 @@ function dropItem(it){if(io)io.unobserve(it.li);if(it.url)URL.revokeObjectURL(it
 function splitName(n){const i=n.lastIndexOf('.'),f=el('span','fn');f.append(el('span','fn-b',i>0?n.slice(0,i):n),el('span','fn-e',i>0?n.slice(i):''));return f;}
 // Remove one row. Focus (WCAG 2.4.3): next row's Remove, else previous row's, else the file picker inside the drop zone.
 // Programmatic focus keeps :focus-visible heuristics, so the ring shows only after a keyboard-initiated removal.
-// Status: removal message (removed_* keys; ru/zh carry TEMPORARY placeholders until Nathan's texts).
+// Status: removal message via removed_zero (n==0) or Intl.PluralRules removed_* otherwise.
 function remove(it){if(busy)return;const i=items.indexOf(it);if(i<0)return;const nx=items[i+1]||items[i-1]||null,name=it.file.name;
   dropItem(it);it.li.remove();items.splice(i,1);syncUI();
   if(nx)nx.rm.focus();else $('files').focus();
-  if(!items.length)return;const n=items.length;
-  status.textContent=tp('removed',n,'Removed {name}. {n} file in the list','Removed {name}. {n} files in the list').split('{name}').join(name);}
+  const n=items.length;
+  status.textContent=(n===0?t('removed_zero','Removed {name}. The list is empty',{name}):tp('removed',n,'Removed {name}. {n} file in the list','Removed {name}. {n} files in the list').split('{name}').join(name));}
 function add(files){
   for(const f of files){const li=el('li','row'),meta=el('div','meta'),sub=el('span','sub'),rs=el('span','rs');
     meta.append(splitName(f.name));sub.append(el('span',null,kb(f.size)));const pill=el('span','pill');sub.append(pill);meta.append(sub,rs);

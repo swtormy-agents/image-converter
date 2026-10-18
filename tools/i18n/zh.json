@@ -20,7 +20,7 @@
  "safari_html": "<b>浏览器测试：</b>已在 Chrome/Chromium、Firefox 和 WebKit 引擎构建版本中测试。macOS 和 iOS/iPadOS 上的 Safari 尚未完全测试；如遇问题，请在 GitHub 上反馈。",
  "popular": "常用转换",
  "pair_link": "{A} 转 {B}",
- "f_conv": "转换器",
+ "f_conv": "图片转换器",
  "f_priv": "隐私",
  "f_lic": "许可证",
  "index_title": "图片格式转换器｜HEIC、WebP、AVIF 转 JPG/PNG｜Local Image Converter",
@@ -65,12 +65,13 @@
   "convert0": "转换",
   "convert_other": "转换 {n} 个文件",
   "added_other": "已添加 {n} 个文件",
-  "removed_other": "− {name} · {n}",
+  "removed_other": "已移除 {name}。列表中有 {n} 个文件",
   "converted": "已转换 {ok}/{n}",
   "empty": "添加图片即可开始",
   "dl": "下载",
   "dlName": "下载 {name}",
-  "dec": "."
+  "dec": ".",
+  "removed_zero": "已移除 {name}。列表已清空"
  },
  "index_lead": "文件仅在您的设备上处理，不会上传到服务器。如果浏览器支持 WebP 编码，也可输出 WebP。",
  "pair_lead": "输出格式已预设为 {B}。转换在您的设备上进行，文件不会上传到服务器。",
@@ -91,6 +92,5 @@
    "desc": "在浏览器中将 HEIC 转换为 JPG，文件不会上传到服务器，也不会离开您的设备。"
   }
  },
- "_doc_pair_meta": "Per-page approved title/desc overrides (keys title, desc).",
- "_todo_nathan_removed": "TEMPORARY placeholder for js.removed_* (aria-live removal announcement, {name},{n}); needs real zh text from Nathan Price"
+ "_doc_pair_meta": "Per-page approved title/desc overrides (keys title, desc)."
 }

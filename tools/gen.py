@@ -40,7 +40,7 @@ DOC_PAGES={'privacy.html','licenses.html'}
 LD_PAGES={'index.html'}|{f'{a}-to-{b}.html' for a,b,*_ in PAIRS}  # JSON-LD on index and tool pages only, not privacy/licences
 
 NB='\u00a0'
-PLAIN_KEYS={'tagline'}  # attribute/OG-image only text (og:image:alt): plain spaces, never U+00A0
+PLAIN_KEYS={'tagline','removed_zero','removed_one','removed_few','removed_many','removed_other'}  # tagline: OG alt plain spaces; removed_*: Nathan aria-live texts, plain spaces by design
 RU_SHORT='не|и|с|в|на|к|о|у|а|из|за|по|от|до|я|ни|но|же|ли'
 def ru_nbsp(s): return re.sub(r'(?<![\w\u0400-\u04ff])('+RU_SHORT+r') ',lambda m:m.group(1)+NB,s,flags=re.I)
 def check_ru(T,path='ru'):
