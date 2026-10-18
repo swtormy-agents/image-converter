@@ -69,7 +69,7 @@
  "licenses_note_html": "",
  "mt_notice_html": "",
  "og_h1": "Convert images locally in your browser",
- "index_lead": "HEIC, WebP, AVIF, PNG, JPEG to JPEG or PNG, plus WebP if your browser supports it. Your files are processed on your device and never uploaded.",
+ "index_lead": "HEIC, WebP, AVIF, PNG, JPEG to JPEG or PNG, plus WebP if your browser supports it. Your files are processed on your device and never uploaded.",
  "pair_lead": "{B} is preset. Conversion runs on your device; the files are not uploaded.",
  "lede_m": "Files are not uploaded to a server.",
  "more": "Details and limitations",
