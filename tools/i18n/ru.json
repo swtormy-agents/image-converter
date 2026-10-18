@@ -70,6 +70,10 @@
   "added_few": "Добавлено {n} файла",
   "added_many": "Добавлено {n} файлов",
   "added_other": "Добавлено {n} файла",
+  "removed_one": "− {name} · {n}",
+  "removed_few": "− {name} · {n}",
+  "removed_many": "− {name} · {n}",
+  "removed_other": "− {name} · {n}",
   "converted": "Готово {ok} из {n}",
   "empty": "Добавьте изображения, чтобы начать",
   "dl": "Скачать",
@@ -88,5 +92,6 @@
  "lim_p": "HEIC с несколькими изображениями: только первое. EXIF (камера, GPS, дата) не сохраняется, ориентация не применяется. Safari/iOS пока проверен не полностью.",
  "foot": "Бесплатно, открытый код. Файлы не отправляются на сервер и не покидают устройство. Без cookie и без рекламы.",
  "legal": "Сайт не связан с производителями устройств, браузеров и программ и не одобрен ими; названия форматов используются для описания.",
- "read_en": "Read in English"
+ "read_en": "Read in English",
+ "_todo_nathan_removed": "TEMPORARY placeholder for js.removed_* (aria-live removal announcement, {name},{n}); needs real ru text from Nathan Price"
 }

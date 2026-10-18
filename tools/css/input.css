@@ -12,7 +12,7 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 @plugin "daisyui/theme" {
-  name: "lagoon"; default: true; prefersdark: false; color-scheme: light;
+  name: "lagoon"; default: true; prefersdark: false; color-scheme: light; --th-bd: 55%;
   --color-base-100: #ffffff; --color-base-200: #f0f7f7; --color-base-300: #d5e7e7; --color-base-content: #0f2a2e;
   --color-primary: #0f766e; --color-primary-content: #ffffff;
   --color-secondary: #155e75; --color-secondary-content: #ffffff;
@@ -24,7 +24,7 @@
   --size-selector: 0.25rem; --size-field: 0.25rem; --border: 1px; --depth: 0; --noise: 0;
 }
 @plugin "daisyui/theme" {
-  name: "lagoon-dark"; default: false; prefersdark: true; color-scheme: dark;
+  name: "lagoon-dark"; default: false; prefersdark: true; color-scheme: dark; --th-bd: 40%;
   --color-base-100: #0b1d20; --color-base-200: #102a2e; --color-base-300: #1d3d42; --color-base-content: #e3f2f1;
   --color-primary: #2dd4bf; --color-primary-content: #042f2e;
   --color-secondary: #67e8f9; --color-secondary-content: #083344;
@@ -69,7 +69,9 @@
   #list .meta, #list .sub, #list .muted { @apply text-sm text-base-content/80; }
   #list .sub { @apply flex flex-wrap items-center gap-x-2 gap-y-1; }
   #list .row .btn { @apply shrink-0 no-underline; }
-  .th { @apply relative grid place-items-center flex-none size-16 sm:size-24 overflow-hidden rounded-field border border-base-content/40 bg-base-200 text-base-content/70; contain: strict; }
+  .th { @apply relative grid place-items-center flex-none size-16 sm:size-24 overflow-hidden rounded-field border bg-base-200 text-base-content/70; contain: strict;
+    /* --th-bd per theme (Olivia review 3d69008 note 4): light 55% = 3.59:1 on base-100, dark stays 40% = 3.44:1 */
+    border-color: color-mix(in oklab, var(--color-base-content) var(--th-bd, 40%), transparent); }
   .th img { @apply block size-full object-contain object-center; }
   .th svg { @apply size-7 sm:size-9 fill-none stroke-current; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   .th.is-error { @apply flex flex-col items-center justify-center gap-0.5; }
@@ -81,7 +83,14 @@
     #list .row:has(.btn) { @apply flex-wrap; }
     #list .row:has(.btn) .meta { flex: 1 1 calc(100% - 64px - 44px - 16px); }
     #list .row:has(.btn) .rm { @apply order-2 self-start; }
-    #list .row .btn { @apply order-3 ms-[72px]; }
+    #list .row .btn { @apply order-3 ms-[72px]; }    /* error rows (li.is-err, set by app.js): status spans the full row under the thumbnail instead of a ~150px column (review fix 2) */
+    #list .row.is-err { @apply grid items-center; grid-template-columns: 4rem minmax(0, 1fr) auto; }
+    #list .row.is-err .meta { display: contents; }
+    #list .row.is-err .th { grid-row: 1 / span 2; }
+    #list .row.is-err .fn { @apply col-start-2 row-start-1 self-end; }
+    #list .row.is-err .sub { @apply col-start-2 row-start-2 self-start; }
+    #list .row.is-err .rm { @apply col-start-3 row-start-1 row-span-2 self-start; }
+    #list .row.is-err .rs { @apply col-span-full row-start-3; }
   }
   #list .ok { @apply text-success; }
   #list .err { @apply text-error; }

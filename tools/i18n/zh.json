@@ -65,6 +65,7 @@
   "convert0": "转换",
   "convert_other": "转换 {n} 个文件",
   "added_other": "已添加 {n} 个文件",
+  "removed_other": "− {name} · {n}",
   "converted": "已转换 {ok}/{n}",
   "empty": "添加图片即可开始",
   "dl": "下载",
@@ -90,5 +91,6 @@
    "desc": "在浏览器中将 HEIC 转换为 JPG，文件不会上传到服务器，也不会离开您的设备。"
   }
  },
- "_doc_pair_meta": "Per-page approved title/desc overrides (keys title, desc)."
+ "_doc_pair_meta": "Per-page approved title/desc overrides (keys title, desc).",
+ "_todo_nathan_removed": "TEMPORARY placeholder for js.removed_* (aria-live removal announcement, {name},{n}); needs real zh text from Nathan Price"
 }

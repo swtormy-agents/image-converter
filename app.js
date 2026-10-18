@@ -86,8 +86,29 @@ function hasAlpha(f){return /\.(png|webp|avif|gif)$/i.test(f.name)||/image\/(png
 function thLoading(it){const d=el('div','th skeleton');d.setAttribute('aria-hidden','true');d.appendChild(icon(IMG_D));it.th.replaceWith(d);it.th=d;}
 function thError(it){const d=el('div','th is-error');d.setAttribute('aria-hidden','true');d.append(icon(FILE_D),el('span','th-x',srcExt(it.file)));it.th.replaceWith(d);it.th=d;
   it.noPv=true;setRs(it,[...it.rs.childNodes].filter(n=>!n.classList||!n.classList.contains('npv')));}
-function setRs(it,nodes){it.rs.textContent='';if(it.noPv)it.rs.append(el('span','muted npv',t('noPreview','No preview')+' \u00b7 '));it.rs.append(...nodes);}
+// Error status: no "No preview ·" prefix (the error already explains it); li.is-err lets the status take the full row width <600px.
+function setRs(it,nodes){const er=nodes.some(n=>n.classList&&n.classList.contains('err'));it.rs.textContent='';it.li.classList.toggle('is-err',er);
+  if(it.noPv&&!er)it.rs.append(el('span','muted npv',t('noPreview','No preview')+' \u00b7 '));it.rs.append(...nodes);}
+// Read pixel size from the file header without decoding (review note 10 / card «лимит 50 МП»).
+// JPEG SOFn, PNG IHDR, GIF LSD, BMP, WebP VP8/VP8L/VP8X, ISOBMFF (AVIF/HEIC) ispe. Unknown/garbled -> null (caller falls back to decode).
+async function headerDims(f){try{const b=new DataView(await f.slice(0,Math.min(f.size,1<<20)).arrayBuffer()),L=b.byteLength,u8=i=>b.getUint8(i),
+  u16=(i,le)=>b.getUint16(i,le),u32=(i,le)=>b.getUint32(i,le),s4=i=>String.fromCharCode(u8(i),u8(i+1),u8(i+2),u8(i+3)),ok=(w,h)=>w>0&&h>0?{w,h}:null;
+  if(L<12)return null;
+  if(u16(0)===0xFFD8){let i=2;while(i+9<L){if(u8(i)!==0xFF){i++;continue;}const m=u8(i+1);if(m===0xFF){i++;continue;}if(m===0xD8||m===0x01||(m>=0xD0&&m<=0xD7)){i+=2;continue;}
+      const len=u16(i+2);if((m>=0xC0&&m<=0xCF)&&m!==0xC4&&m!==0xC8&&m!==0xCC)return ok(u16(i+7),u16(i+5));if(m===0xDA||len<2)return null;i+=2+len;}return null;}
+  if(u32(0)===0x89504E47&&L>=24&&s4(12)==='IHDR')return ok(u32(16),u32(20));
+  if(s4(0)==='GIF8')return ok(u16(6,true),u16(8,true));
+  if(u8(0)===0x42&&u8(1)===0x4D&&L>=26){const hs=u32(14,true);if(hs===12)return ok(u16(18,true),u16(20,true));return ok(Math.abs(b.getInt32(18,true)),Math.abs(b.getInt32(22,true)));}
+  if(s4(0)==='RIFF'&&s4(8)==='WEBP'&&L>=30){const c=s4(12);
+    if(c==='VP8X')return ok(1+(u8(24)|u8(25)<<8|u8(26)<<16),1+(u8(27)|u8(28)<<8|u8(29)<<16));
+    if(c==='VP8L'&&u8(20)===0x2F){const v=u32(21,true);return ok(1+(v&0x3FFF),1+((v>>>14)&0x3FFF));}
+    if(c==='VP8 '&&u8(23)===0x9D&&u8(24)===0x01&&u8(25)===0x2A)return ok(u16(26,true)&0x3FFF,u16(28,true)&0x3FFF);return null;}
+  if(s4(4)==='ftyp'){let best=null;const walk=(a,e)=>{while(a+8<=e){let sz=u32(a);const ty=s4(a+4);let h=8;if(sz===1){if(a+16>L)return;sz=u32(a+12);h=16;}else if(sz===0)sz=e-a;if(sz<h)return;
+      const end=Math.min(a+sz,e);if(ty==='meta')walk(a+h+4,end);else if(ty==='iprp'||ty==='ipco')walk(a+h,end);
+      else if(ty==='ispe'&&a+20<=L){const w=u32(a+12),hh=u32(a+16);if(w&&hh&&(!best||w*hh>best.w*best.h))best={w,h:hh};}a+=sz;}};walk(0,L);return best;}
+  return null;}catch(e){return null;}}
 async function makeThumb(it){
+  const hd=await headerDims(it.file);if(hd&&hd.w*hd.h>MAX_PX)throw new Error('too large');  // skip the full decode for >50 MP
   const src=await decode(it.file);  // same path as conversion: native, then the existing lazy HEIC decoder (respects HEIC_WASM_ENABLED)
   try{const w=src.naturalWidth||src.width,h=src.naturalHeight||src.height;if(!w||!h||w*h>MAX_PX)throw new Error('too large');
     const k=Math.min(1,thSize()/Math.max(w,h)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w*k));c.height=Math.max(1,Math.round(h*k));
@@ -108,6 +129,14 @@ const io=window.IntersectionObserver?new IntersectionObserver(es=>{for(const x o
 function queueThumb(it){if(io)io.observe(it.li);else{thQ.push(it);pump();}}
 function dropItem(it){if(io)io.unobserve(it.li);if(it.url)URL.revokeObjectURL(it.url);if(it.thUrl){URL.revokeObjectURL(it.thUrl);it.thUrl=null;}}
 function splitName(n){const i=n.lastIndexOf('.'),f=el('span','fn');f.append(el('span','fn-b',i>0?n.slice(0,i):n),el('span','fn-e',i>0?n.slice(i):''));return f;}
+// Remove one row. Focus (WCAG 2.4.3): next row's Remove, else previous row's, else the file picker inside the drop zone.
+// Programmatic focus keeps :focus-visible heuristics, so the ring shows only after a keyboard-initiated removal.
+// Status: removal message (removed_* keys; ru/zh carry TEMPORARY placeholders until Nathan's texts).
+function remove(it){if(busy)return;const i=items.indexOf(it);if(i<0)return;const nx=items[i+1]||items[i-1]||null,name=it.file.name;
+  dropItem(it);it.li.remove();items.splice(i,1);syncUI();
+  if(nx)nx.rm.focus();else $('files').focus();
+  if(!items.length)return;const n=items.length;
+  status.textContent=tp('removed',n,'Removed {name}. {n} file in the list','Removed {name}. {n} files in the list').split('{name}').join(name);}
 function add(files){
   for(const f of files){const li=el('li','row'),meta=el('div','meta'),sub=el('span','sub'),rs=el('span','rs');
     meta.append(splitName(f.name));sub.append(el('span',null,kb(f.size)));const pill=el('span','pill');sub.append(pill);meta.append(sub,rs);
@@ -115,7 +144,7 @@ function add(files){
     const rm=el('button','rm');rm.type='button';rm.setAttribute('aria-label',t('removeName','Remove {name}',{name:f.name}));rm.appendChild(svgX());
     const th=el('div','th');li.setAttribute('translate','no');li.append(th,meta,rm);
     const it={file:f,li,rs,rm,pill,th,out:null,a:null,thUrl:null,noPv:false};setPill(it);thLoading(it);setRs(it,[el('span','muted',t('ready','Ready'))]);
-    rm.addEventListener('click',()=>{if(busy)return;dropItem(it);li.remove();items=items.filter(x=>x!==it);syncUI();if(items.length)status.textContent=tp('added',items.length,'{n} file added','{n} files added');});
+    rm.addEventListener('click',()=>remove(it));
     list.appendChild(li);items.push(it);queueThumb(it);}
   if(items.length){status.textContent=tp('added',items.length,'{n} file added','{n} files added');btn.disabled=false;}
   syncUI();
