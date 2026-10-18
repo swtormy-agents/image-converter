@@ -75,7 +75,7 @@
  "more": "Details and limitations",
  "drop_sub": "Nothing is uploaded.",
  "heic_note": "HEIC: first image only, EXIF dropped. The decoder may take a few seconds on first use.",
- "quality_label": "Quality · JPEG, WebP, AVIF",
+ "quality_label": "Quality · JPEG, WebP",
  "q_default": "0.85",
  "lim": "Limitations",
  "lim_p": "Multi-image HEIC: first image only. EXIF (camera, GPS, date) is dropped and orientation is not applied. Safari/iOS not fully tested yet.",
