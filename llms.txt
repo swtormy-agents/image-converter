@@ -3,8 +3,8 @@
 > Free, open-source image converter that runs entirely in the browser. Files never leave your device: decoding and encoding happen locally, nothing is uploaded, no cookies, no analytics, no ads, no account.
 
 - Input formats: HEIC/HEIF, WebP, AVIF, PNG, JPEG (any other image type the browser itself can decode may also work).
-- Output formats: JPEG and PNG always; WebP and AVIF are offered only if the visitor's browser can encode them.
-- Quality slider for JPEG, WebP and AVIF: 0.5 to 1.0, step 0.05, default 0.85. PNG output is lossless (slider has no effect).
+- Output formats: JPEG and PNG always; WebP is offered only if the visitor's browser can encode it.
+- Quality slider for JPEG and WebP: 0.5 to 1.0, step 0.05, default 0.85. PNG output is lossless (slider has no effect).
 - Batch: multiple files at once; each result downloads separately, or all results as one ZIP (converted-images.zip) when two or more succeed.
 - No file-size limit is set by the tool; practical limits are the device's memory and the browser's canvas limits.
 - Limitations: EXIF metadata (camera, GPS, date) is dropped and EXIF orientation is not applied, so some photos may appear rotated; for multi-image HEIC/HEIF only the first image is converted; JPEG output turns transparent areas white.
