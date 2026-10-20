@@ -7,12 +7,12 @@ Use it: https://noclaudkit.com/image-converter/
 ## Formats
 
 - Input: HEIC/HEIF, WebP, AVIF, PNG, JPEG. Other image types the browser can decode natively may also work.
-- Output: JPEG and PNG in every browser. WebP and AVIF appear in the format list only if your browser can encode them.
+- Output: JPEG and PNG in every browser. WebP appears in the format list only if your browser can encode it.
 
 ## How it works
 
 1. Choose files or drop them on the page (several at once is fine).
-2. Pick the output format and, for JPEG/WebP/AVIF, the quality (0.5–1.0, default 0.85).
+2. Pick the output format and, for JPEG/WebP, the quality (0.5–1.0, default 0.85).
 3. Convert. Download each file, or all results as a ZIP (`converted-images.zip`) when at least two files were converted.
 
 Decoding uses the browser's built-in codecs. For HEIC/HEIF files the browser cannot open, a WebAssembly decoder (libheif, LGPL-3.0) is loaded from this same site on first use (this may take a few seconds) and runs locally.

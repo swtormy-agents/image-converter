@@ -24,7 +24,7 @@
  "f_priv": "隐私",
  "f_lic": "许可证",
  "index_title": "图片格式转换器｜HEIC、WebP、AVIF 转 JPG/PNG｜Local Image Converter",
- "index_desc": "直接在浏览器中将 HEIC/HEIF、WebP、AVIF、PNG 和 JPEG 图片转换为 JPG、PNG 或 WebP。文件在您的设备上处理，不会上传到服务器。免费、无广告、无 Cookie。",
+ "index_desc": "直接在浏览器中将 HEIC、WebP、AVIF、PNG 和 JPEG 转换为 JPG 或 PNG，浏览器支持时还可输出 WebP。文件不会离开您的设备。免费。",
  "index_h1": "图片格式转换：HEIC、WebP、AVIF 转 JPG/PNG",
  "pair_title": "{A} 转 {B} 在线转换器｜免费、浏览器本地转换、文件不上传到服务器",
  "pair_desc": "在线将 {A} 图片免费转换为 {B}，在浏览器中本地完成。支持批量转换、质量调节和 ZIP 下载。文件保留在您的设备上，不会上传到服务器；无广告、无 Cookie。",
@@ -32,7 +32,7 @@
  "notes": {
   "heic": "如果浏览器无法打开 HEIC，会从本站加载 WebAssembly 解码器（libheif），并在本地运行。",
   "webp": "WebP 由浏览器内置解码器解码。",
-  "avif": "AVIF 由浏览器内置解码器解码（当前版本的 Chrome、Edge、Firefox 和 Safari 均支持）。",
+  "avif": "AVIF 文件由浏览器自身打开。如果无法打开，请更新浏览器或换用其他浏览器。",
   "png": "PNG 由浏览器解码。",
   "jpg": "JPEG 由浏览器解码。"
  },
@@ -79,7 +79,7 @@
  "more": "详情与限制",
  "drop_sub": "不会上传任何内容。",
  "heic_note": "HEIC：仅转换第一张图片，不保留 EXIF。首次使用时，解码器需要几秒钟加载。",
- "quality_label": "质量 · JPEG、WebP、AVIF",
+ "quality_label": "质量 · JPEG、WebP",
  "q_default": "0.85",
  "lim": "限制",
  "lim_p": "多图 HEIC 仅转换第一张。不保留 EXIF（相机、GPS、日期），也不应用方向信息。Safari/iOS 尚未完全测试。",
