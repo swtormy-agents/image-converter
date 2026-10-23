@@ -87,7 +87,9 @@ function thLoading(it){const d=el('div','th skeleton');d.setAttribute('aria-hidd
 // Card «Превью: строка с ошибкой растёт на 320 (CLS)»: the visible «No preview» lives inside the fixed-size tile (icon + one truncated line),
 // the status line keeps an sr-only copy, so a failed lazy decode never changes the row height.
 // Coalesced polite announcement in #lh: many failed previews -> one message with the count (Megan 55cc328).
-let npvT=0;function announceNoPv(){clearTimeout(npvT);npvT=setTimeout(()=>{if(busy)return;const n=items.filter(x=>x.noPv).length;if(n)status.textContent=tp('noPreviewN',n,'No preview for {n} file','No preview for {n} files');},700);}
+// Single writer for #lh no-preview (Megan 5c59faf): while converting only set npvPend; the summary then gets " · <noPreviewN>" appended once.
+let npvT=0,npvPend=false,lhSum='';function npvText(){const n=items.filter(x=>x.noPv).length;return n?tp('noPreviewN',n,'No preview for {n} file','No preview for {n} files'):'';}
+function announceNoPv(){clearTimeout(npvT);npvT=0;if(busy){npvPend=true;return;}npvT=setTimeout(()=>{npvT=0;if(busy){npvPend=true;return;}const m=npvText();if(!m)return;status.textContent=lhSum&&status.textContent===lhSum?lhSum+' \u00b7 '+m:m;lhSum='';},700);}
 function thError(it){const np=t('noPreview','No preview'),d=el('div','th is-error');d.setAttribute('aria-hidden','true');d.title=np;d.append(icon(FILE_D),el('span','th-x',np));it.th.replaceWith(d);it.th=d;
   it.noPv=true;announceNoPv();setRs(it,[...it.rs.childNodes].filter(n=>!n.classList||!n.classList.contains('npv')));}
 // Error status: no "No preview ·" prefix (the error already explains it); li.is-err lets the status take the full row width <600px.
@@ -161,7 +163,7 @@ const drop=$('drop');
 ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
 drop.addEventListener('drop',e=>add(e.dataTransfer.files));
 btn.addEventListener('click',async()=>{
-  if(!items.length)return;busy=true;btn.disabled=true;syncUI();const type=fmtSel.value,ext=OUT.find(o=>o[0]===type)[2],qual=Number(q.value);let ok=0;
+  if(!items.length)return;busy=true;if(npvT){clearTimeout(npvT);npvT=0;npvPend=true;}lhSum='';btn.disabled=true;syncUI();const type=fmtSel.value,ext=OUT.find(o=>o[0]===type)[2],qual=Number(q.value);let ok=0;
   for(let i=0;i<items.length;i++){const it=items[i],rs=it.rs;status.textContent=t('progress','Converting {i} of {n}…',{i:i+1,n:items.length});setRs(it,[el('span','muted',t('working','Converting…'))]);
     if(it.a){it.a.remove();it.a=null;}it.out=null;setPill(it);
     try{const b=await convert(it,type,qual);const name=it.file.name.replace(/\.[^.]+$/,'')+'.'+ext;it.out={name,blob:b};
@@ -170,7 +172,7 @@ btn.addEventListener('click',async()=>{
       const a=el('a','btn sec sm',t('dl','Download'));a.href=it.url;a.download=name;a.setAttribute('aria-label',t('dlName','Download {name}',{name}));it.li.insertBefore(a,it.rm);it.a=a;ok++;
     }catch(e){it.out=null;setRs(it,[el('span','err',e.friendly||t('readErr',"Couldn't read this file. Is it a supported image (HEIC, HEIF, WebP, AVIF, PNG, JPEG)?"))]);}
   }
-  busy=false;status.textContent=t('converted','{ok} of {n} converted',{ok,n:items.length});btn.disabled=true;syncUI();
+  busy=false;const sum=t('converted','{ok} of {n} converted',{ok,n:items.length}),m=npvPend?npvText():'';npvPend=false;lhSum=m?'':sum;status.textContent=m?sum+' \u00b7 '+m:sum;btn.disabled=true;syncUI();
 });
 zipBtn.addEventListener('click',async()=>{const fs=items.filter(i=>i.out).map(i=>({name:i.out.name,blob:i.out.blob}));const seen={};fs.forEach(f=>{let n=f.name,k=1;while(seen[n])n=f.name.replace(/(\.[^.]+)$/,'-'+(k++)+'$1');seen[n]=1;f.name=n;});
   const z=await makeZip(fs);const a=document.createElement('a');a.href=URL.createObjectURL(z);a.download='converted-images.zip';document.body.appendChild(a);a.click();a.remove();});

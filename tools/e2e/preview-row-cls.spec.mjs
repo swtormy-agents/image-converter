@@ -80,3 +80,44 @@ for (const [page_, msg] of Object.entries(NPV)) {
     expect(h).toEqual([94, 94]);
   });
 }
+
+// Megan 5c59faf: the no-preview announcement must not collide with conversion. While converting it is deferred,
+// then announced once appended to the final summary: «<summary> · <noPreviewN>». No no-preview text during conversion.
+const FX = new URL('./fixtures/', import.meta.url).pathname;
+const CONV = {
+  'index.html': ['3 of 5 converted', 'No preview for'],
+  'ru/index.html': ['Готово 3 из\u00a05', 'Нет превью для'],
+  'zh/index.html': ['已转换 3/5', '个文件无预览'],
+};
+const NPV3 = { 'index.html': 'No preview for 3 files', 'ru/index.html': 'Нет превью для 3 файлов', 'zh/index.html': '3 个文件无预览' };
+for (const [page_, [sum, npvMark]] of Object.entries(CONV)) {
+  test(`#lh no-preview waits for conversion summary (${page_})`, async ({ page }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.addInitScript(() => {
+      window.__lh = [];
+      document.addEventListener('DOMContentLoaded', () => {
+        const lh = document.getElementById('lh');
+        new MutationObserver(() => window.__lh.push(lh.textContent)).observe(lh, { childList: true, characterData: true, subtree: true });
+      });
+    });
+    await page.goto(page_);
+    await page.setInputFiles('#files', ['ok1.png', 'bad1.jpg', 'bad2.jpg', 'ok2.jpg', 'big56mp.png'].map((f) => FX + f));
+    await expect(page.locator('#list > li')).toHaveCount(5);
+    await page.locator('#list > li').last().scrollIntoViewIfNeeded(); // lazy previews: bring all rows into the IO margin
+    await page.waitForTimeout(100);
+    await page.click('#convert');
+    await page.mouse.move(160, 400);
+    for (let i = 0; i < 10; i++) { await page.mouse.wheel(0, i % 2 ? -60 : 80); await page.waitForTimeout(80); }
+    const final = `${sum} · ${NPV3[page_]}`;
+    await expect(page.locator('#lh')).toHaveText(final, { timeout: 90000 });
+    await page.waitForTimeout(1500); // longer than the 700ms debounce: nothing may follow
+    await expect(page.locator('#lh')).toHaveText(final);
+    const log = await page.evaluate(() => window.__lh);
+    const iSum = log.findIndex((x) => x.startsWith(sum));
+    expect(iSum, `summary present in ${JSON.stringify(log)}`).toBeGreaterThan(-1);
+    expect(log.slice(0, iSum).some((x) => x.includes(npvMark)), `no no-preview text during conversion: ${JSON.stringify(log)}`).toBe(false);
+    expect(log.slice(iSum), `exactly one final announcement: ${JSON.stringify(log)}`).toEqual([final]);
+    await expect(page.locator('#list .th.is-error')).toHaveCount(3);
+  });
+}
