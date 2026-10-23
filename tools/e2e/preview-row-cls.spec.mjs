@@ -39,6 +39,11 @@ for (const page_ of ['index.html', 'ru/index.html', 'zh/index.html']) {
     console.log(`[${test.info().project.name}] ${page_} row h ${h0[0]}→${Math.max(...h1)} layout-shift`, JSON.stringify(ls));
     expect(new Set(h1).size, 'all rows (ok and error) have one height').toBe(1);
     expect(h1).toEqual(h0);
+    expect(h1[0], 'rows stay 94px at 320').toBe(94);
+    // the «No preview» label in the error tile is not truncated (Olivia 6a91b5d)
+    const fit = await page.locator('#list .th.is-error .th-x').evaluateAll((xs) => xs.map((x) => [x.scrollWidth, x.clientWidth, x.textContent]));
+    expect(fit.length).toBe(19);
+    for (const [sw, cw, tx] of fit) expect(sw, `.th-x «${tx}» fits (${sw} <= ${cw})`).toBeLessThanOrEqual(cw);
     // the error stays accessible: «No preview» text is in the row's accessible text, the tile remains decorative
     const err = rows.filter({ has: page.locator('.th.is-error') }).first();
     await expect(err.locator('.th')).toHaveAttribute('aria-hidden', 'true');
