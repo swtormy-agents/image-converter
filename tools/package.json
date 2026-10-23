@@ -4,9 +4,11 @@
   "license": "MIT",
   "scripts": {
     "build:css": "tailwindcss -i css/input.css -o ../build/app.css --minify",
-    "check:css": "node scripts/check-css.mjs"
+    "check:css": "node scripts/check-css.mjs",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@tailwindcss/cli": "4.3.3",
     "daisyui": "5.7.50"
   }

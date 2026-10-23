@@ -84,11 +84,13 @@ const MAX_PX=50e6,mqD=window.matchMedia?matchMedia('(min-width:600px)'):null;
 function thSize(){return ((mqD&&mqD.matches)?96:64)*Math.min(Math.max(window.devicePixelRatio||1,1),2);}
 function hasAlpha(f){return /\.(png|webp|avif|gif)$/i.test(f.name)||/image\/(png|webp|avif|gif)/i.test(f.type);}
 function thLoading(it){const d=el('div','th skeleton');d.setAttribute('aria-hidden','true');d.appendChild(icon(IMG_D));it.th.replaceWith(d);it.th=d;}
-function thError(it){const d=el('div','th is-error');d.setAttribute('aria-hidden','true');d.append(icon(FILE_D),el('span','th-x',srcExt(it.file)));it.th.replaceWith(d);it.th=d;
+// Card «Превью: строка с ошибкой растёт на 320 (CLS)»: the visible «No preview» lives inside the fixed-size tile (icon + one truncated line),
+// the status line keeps an sr-only copy, so a failed lazy decode never changes the row height.
+function thError(it){const np=t('noPreview','No preview'),d=el('div','th is-error');d.setAttribute('aria-hidden','true');d.title=np;d.append(icon(FILE_D),el('span','th-x',np));it.th.replaceWith(d);it.th=d;
   it.noPv=true;setRs(it,[...it.rs.childNodes].filter(n=>!n.classList||!n.classList.contains('npv')));}
 // Error status: no "No preview ·" prefix (the error already explains it); li.is-err lets the status take the full row width <600px.
 function setRs(it,nodes){const er=nodes.some(n=>n.classList&&n.classList.contains('err'));it.rs.textContent='';it.li.classList.toggle('is-err',er);
-  if(it.noPv&&!er)it.rs.append(el('span','muted npv',t('noPreview','No preview')+' \u00b7 '));it.rs.append(...nodes);}
+  if(it.noPv&&!er)it.rs.append(el('span','sr-only npv',t('noPreview','No preview')+' \u00b7 '));it.rs.append(...nodes);}
 // Read pixel size from the file header without decoding (review note 10 / card «лимит 50 МП»).
 // JPEG SOFn, PNG IHDR, GIF LSD, BMP, WebP VP8/VP8L/VP8X, ISOBMFF (AVIF/HEIC) ispe. Unknown/garbled -> null (caller falls back to decode).
 async function headerDims(f){try{const b=new DataView(await f.slice(0,Math.min(f.size,1<<20)).arrayBuffer()),L=b.byteLength,u8=i=>b.getUint8(i),

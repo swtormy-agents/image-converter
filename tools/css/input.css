@@ -75,7 +75,7 @@
   .th img { @apply block size-full object-contain object-center; }
   .th svg { @apply size-7 sm:size-9 fill-none stroke-current; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   .th.is-error { @apply flex flex-col items-center justify-center gap-0.5; }
-  .th-x { @apply text-[0.625rem] sm:text-xs font-semibold leading-none; }
+  .th-x { @apply block max-w-full px-1 truncate text-[0.625rem] sm:text-xs font-semibold leading-none; }
   .th-alpha { background: conic-gradient(var(--color-base-300) 25%, var(--color-base-100) 0 50%, var(--color-base-300) 0 75%, var(--color-base-100) 0) 0 0 / 12px 12px; }
   .th.skeleton { background: linear-gradient(100deg, var(--color-base-200) 40%, var(--color-base-300) 50%, var(--color-base-200) 60%) 0 0 / 200% 100%; }
   /* <600px ready rows (Olivia UX, 6fce601): download button on its own line under .meta (frame 64px + gap 8px). Remove stays top-right. */
