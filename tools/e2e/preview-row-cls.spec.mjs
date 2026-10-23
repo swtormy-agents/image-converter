@@ -12,7 +12,7 @@ const files = Array.from({ length: 55 }, (_, i) => i % 3 === 0
   : { name: `photo-${i}.png`, mimeType: 'image/png', buffer: png() });
 
 for (const page_ of ['index.html', 'ru/index.html', 'zh/index.html']) {
-  test(`320px: error rows keep their height, CLS < 0.01 (${page_})`, async ({ page }) => {
+  test(`320px: error rows keep their height, CLS < 0.01 (${page_})`, async ({ page, browserName }) => {
     await page.setViewportSize({ width: 320, height: 640 });
     await page.addInitScript(() => {
       // emulate a slow lazy decode (like HEIC on a phone) so failures land while rows are on screen
@@ -49,6 +49,34 @@ for (const page_ of ['index.html', 'ru/index.html', 'zh/index.html']) {
     await expect(err.locator('.th')).toHaveAttribute('aria-hidden', 'true');
     const npv = await err.locator('.npv').textContent();
     expect(npv.length).toBeGreaterThan(3);
-    if (ls) { expect(ls.all).toBeLessThan(0.01); expect(ls.std).toBeLessThan(0.01); }
+    // CLS is measured only on chromium: firefox/webkit have no layout-shift API, so a 0 there would be vacuous (Megan 55cc328).
+    // Row heights above (h0 == h1 == 94) still cover the no-shift requirement on every engine.
+    if (browserName === 'chromium') {
+      expect(ls, 'layout-shift API available on chromium').not.toBeNull();
+      expect(ls.all).toBeLessThan(0.01); expect(ls.std).toBeLessThan(0.01);
+    } else {
+      test.info().annotations.push({ type: 'skip', description: `CLS assertion skipped on ${browserName}: no layout-shift API (chromium-only check)` });
+      console.log(`[${browserName}] CLS assertion skipped: no layout-shift API, chromium-only`);
+    }
+  });
+}
+
+// Megan 55cc328: preview failures are announced politely in #lh (one coalesced message with the count).
+const NPV = { 'index.html': 'No preview for 1 file', 'ru/index.html': 'Нет превью для 1 файла', 'zh/index.html': '1 个文件无预览' };
+for (const [page_, msg] of Object.entries(NPV)) {
+  test(`#lh announces preview failure (${page_})`, async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto(page_);
+    await expect(page.locator('#lh')).toHaveAttribute('aria-live', 'polite');
+    await page.setInputFiles('#files', [
+      { name: 'ok1.png', mimeType: 'image/png', buffer: png() },
+      { name: 'text.jpg', mimeType: 'image/jpeg', buffer: Buffer.from('QA corrupt test file, not an image.'.repeat(30)) },
+    ]);
+    await expect(page.locator('#list > li')).toHaveCount(2);
+    await page.mouse.move(160, 400); await page.mouse.wheel(0, 200);
+    await expect(page.locator('#list .th.is-error')).toHaveCount(1, { timeout: 15000 });
+    await expect(page.locator('#lh')).toContainText(msg, { timeout: 5000 });
+    const h = await page.locator('#list > li').evaluateAll((ls) => ls.map((l) => l.getBoundingClientRect().height));
+    expect(h).toEqual([94, 94]);
   });
 }

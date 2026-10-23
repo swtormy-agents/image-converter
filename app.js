@@ -86,8 +86,10 @@ function hasAlpha(f){return /\.(png|webp|avif|gif)$/i.test(f.name)||/image\/(png
 function thLoading(it){const d=el('div','th skeleton');d.setAttribute('aria-hidden','true');d.appendChild(icon(IMG_D));it.th.replaceWith(d);it.th=d;}
 // Card «Превью: строка с ошибкой растёт на 320 (CLS)»: the visible «No preview» lives inside the fixed-size tile (icon + one truncated line),
 // the status line keeps an sr-only copy, so a failed lazy decode never changes the row height.
+// Coalesced polite announcement in #lh: many failed previews -> one message with the count (Megan 55cc328).
+let npvT=0;function announceNoPv(){clearTimeout(npvT);npvT=setTimeout(()=>{if(busy)return;const n=items.filter(x=>x.noPv).length;if(n)status.textContent=tp('noPreviewN',n,'No preview for {n} file','No preview for {n} files');},700);}
 function thError(it){const np=t('noPreview','No preview'),d=el('div','th is-error');d.setAttribute('aria-hidden','true');d.title=np;d.append(icon(FILE_D),el('span','th-x',np));it.th.replaceWith(d);it.th=d;
-  it.noPv=true;setRs(it,[...it.rs.childNodes].filter(n=>!n.classList||!n.classList.contains('npv')));}
+  it.noPv=true;announceNoPv();setRs(it,[...it.rs.childNodes].filter(n=>!n.classList||!n.classList.contains('npv')));}
 // Error status: no "No preview ·" prefix (the error already explains it); li.is-err lets the status take the full row width <600px.
 function setRs(it,nodes){const er=nodes.some(n=>n.classList&&n.classList.contains('err'));it.rs.textContent='';it.li.classList.toggle('is-err',er);
   if(it.noPv&&!er)it.rs.append(el('span','sr-only npv',t('noPreview','No preview')+' \u00b7 '));it.rs.append(...nodes);}
