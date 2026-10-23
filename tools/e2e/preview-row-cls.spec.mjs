@@ -121,3 +121,43 @@ for (const [page_, [sum, npvMark]] of Object.entries(CONV)) {
     await expect(page.locator('#list .th.is-error')).toHaveCount(3);
   });
 }
+
+// Megan 0d7ccf9: Convert immediately (no pre-scroll), scroll only after the summary. The summary must stay as the #lh prefix
+// and the final status must carry the full count; at most one announcement after the summary.
+for (const [page_, [sum, npvMark]] of Object.entries(CONV)) {
+  test(`Convert immediately, scroll after summary (${page_})`, async ({ page }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.addInitScript(() => {
+      window.__lh = [];
+      document.addEventListener('DOMContentLoaded', () => {
+        const lh = document.getElementById('lh');
+        new MutationObserver(() => window.__lh.push(lh.textContent)).observe(lh, { childList: true, characterData: true, subtree: true });
+      });
+    });
+    await page.goto(page_);
+    await page.setInputFiles('#files', ['ok1.png', 'bad1.jpg', 'bad2.jpg', 'ok2.jpg', 'big56mp.png'].map((f) => FX + f));
+    await expect(page.locator('#list > li')).toHaveCount(5);
+    await page.click('#convert');
+    await expect(page.locator('#lh')).toContainText(sum, { timeout: 90000 });
+    const heights = () => page.locator('#list > li').evaluateAll((ls) => ls.map((l) => l.getBoundingClientRect().height));
+    const h0 = await heights();
+    await page.mouse.move(160, 400);
+    for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 200); await page.waitForTimeout(80); }
+    await page.locator('#list > li').last().scrollIntoViewIfNeeded();
+    const final = `${sum} · ${NPV3[page_]}`;
+    await expect(page.locator('#list .th.is-error')).toHaveCount(3, { timeout: 30000 });
+    await expect(page.locator('#lh')).toHaveText(final, { timeout: 10000 });
+    await page.waitForTimeout(1500);
+    await expect(page.locator('#lh')).toHaveText(final);
+    const log = await page.evaluate(() => window.__lh);
+    const iSum = log.findIndex((x) => x.startsWith(sum));
+    expect(log.slice(0, iSum).some((x) => x.includes(npvMark)), `no no-preview text during conversion: ${JSON.stringify(log)}`).toBe(false);
+    const after = log.slice(iSum);
+    expect(after.every((x) => x.startsWith(sum)), `summary kept as prefix: ${JSON.stringify(log)}`).toBe(true);
+    expect(after.length, `at most summary + one update: ${JSON.stringify(log)}`).toBeLessThanOrEqual(2);
+    expect(after.at(-1)).toBe(final);
+    const h1 = await heights();
+    expect(h1, 'preview failures after the summary must not change row heights').toEqual(h0);
+  });
+}
