@@ -4,3 +4,5 @@ secrets/
 node_modules/
 tools/node_modules/
 *.tgz
+tools/test-results/
+tools/playwright-report/

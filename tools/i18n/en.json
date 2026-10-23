@@ -61,6 +61,8 @@
   "dlName": "Download {name}",
   "removeName": "Remove {name}",
   "noPreview": "No preview",
+  "noPreviewN_one": "No preview for {n} file",
+  "noPreviewN_other": "No preview for {n} files",
   "progress": "Converting {i} of {n}…",
   "working": "Converting…",
   "firstOnly": "first image only",

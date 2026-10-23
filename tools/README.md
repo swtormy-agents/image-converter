@@ -21,3 +21,10 @@ npm --prefix tools run check:css    # builds twice, compares sha256, checks buil
 ## Pages
 
 `python3 tools/gen.py` regenerates the en/ru/zh pages from `tools/i18n/`.
+
+## E2E (Playwright)
+
+```sh
+npm --prefix tools ci && npx --prefix tools playwright install chromium firefox webkit
+npm --prefix tools run test:e2e   # chromium, firefox, webkit; serves the repo root on 127.0.0.1:18731
+```
