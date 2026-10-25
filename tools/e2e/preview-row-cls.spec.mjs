@@ -1,6 +1,7 @@
 // Card «Превью: строка с ошибкой растёт на 320 (CLS)»: a failed lazy thumbnail decode must not change the row height.
 import { test, expect } from '@playwright/test';
 import { deflateSync, crc32 } from 'node:zlib';
+import { readFileSync } from 'node:fs';
 
 function png() { // 2x2 valid PNG
   const chunk = (t, d) => { const b = Buffer.alloc(12 + d.length); b.writeUInt32BE(d.length, 0); b.write(t, 4); d.copy(b, 8); b.writeUInt32BE(crc32(Buffer.concat([Buffer.from(t), d])), 8 + d.length); return b; };
@@ -90,6 +91,78 @@ const CONV = {
   'zh/index.html': ['已转换 3/5', '个文件无预览'],
 };
 const NPV3 = { 'index.html': 'No preview for 3 files', 'ru/index.html': 'Нет превью для 3 файлов', 'zh/index.html': '3 个文件无预览' };
+const CORE_FX = ['ok1.png', 'bad1.jpg', 'bad2.jpg', 'ok2.jpg', 'big56mp.png'].map((f) => FX + f);
+// CORE: 3 convert OK (ok1, ok2, big56mp), 2 convert fail (bad1, bad2); 3 preview fails (bad1, bad2, big56mp).
+// A/B omit big56mp so conversion stays fast; on-screen fails are still bad1/bad2.
+// Buffers (not paths): setInputFiles cannot mix file paths with {name, mimeType, buffer} pads.
+function fxBuf(name, mimeType) {
+  return { name, mimeType, buffer: readFileSync(FX + name) };
+}
+const CORE_AB = [
+  fxBuf('ok1.png', 'image/png'),
+  fxBuf('bad1.jpg', 'image/jpeg'),
+  fxBuf('bad2.jpg', 'image/jpeg'),
+  fxBuf('ok2.jpg', 'image/jpeg'),
+];
+const PAD_N = 24;
+function padFiles(n = PAD_N) {
+  return Array.from({ length: n }, (_, i) => ({ name: `pad-${i}.png`, mimeType: 'image/png', buffer: png() }));
+}
+function lateBroken(n) {
+  return Array.from({ length: n }, (_, i) => ({
+    name: `late-bad-${i}.jpg`, mimeType: 'image/jpeg',
+    buffer: Buffer.from('QA corrupt test file, not an image.'.repeat(30)),
+  }));
+}
+function watchLh() {
+  return () => {
+    window.__lh = [];
+    document.addEventListener('DOMContentLoaded', () => {
+      const lh = document.getElementById('lh');
+      new MutationObserver(() => window.__lh.push(lh.textContent)).observe(lh, { childList: true, characterData: true, subtree: true });
+    });
+  };
+}
+async function fmtConverted(page, ok, n) {
+  return page.evaluate(({ ok, n }) => {
+    const I = JSON.parse(document.body.dataset.i18n || '{}');
+    return (I.converted || '{ok} of {n} converted').split('{ok}').join(String(ok)).split('{n}').join(String(n));
+  }, { ok, n });
+}
+async function fmtNoPv(page, n) {
+  return page.evaluate((n) => {
+    const I = JSON.parse(document.body.dataset.i18n || '{}');
+    const lang = document.documentElement.lang || 'en';
+    const PR = (window.Intl && Intl.PluralRules) ? new Intl.PluralRules(lang) : null;
+    const c = PR ? PR.select(n) : (n === 1 ? 'one' : 'other');
+    const s = I['noPreviewN_' + c] || I['noPreviewN_other'];
+    return s.split('{n}').join(String(n));
+  }, n);
+}
+async function fmtRemoved(page, name, n) {
+  return page.evaluate(({ name, n }) => {
+    const I = JSON.parse(document.body.dataset.i18n || '{}');
+    const lang = document.documentElement.lang || 'en';
+    const PR = (window.Intl && Intl.PluralRules) ? new Intl.PluralRules(lang) : null;
+    const c = PR ? PR.select(n) : (n === 1 ? 'one' : 'other');
+    const s = I['removed_' + c] || I['removed_other'];
+    return s.split('{name}').join(name).split('{n}').join(String(n));
+  }, { name, n });
+}
+function npvCounts(after, sum) {
+  return after.map((x) => {
+    if (x === sum) return 0;
+    if (!x.startsWith(sum)) return NaN;
+    const rest = x.slice(sum.length);
+    const m = rest.match(/(\d+)/);
+    return m ? Number(m[1]) : NaN;
+  });
+}
+// On localized pages the drop zone + copy can push #list below the IO margin at 320×640.
+// Reveal only the first row (not a full-list scroll) so on-screen failures exist; later pads stay skeleton.
+async function revealListHead(page) {
+  await page.locator('#list > li').first().scrollIntoViewIfNeeded();
+}
 for (const [page_, [sum, npvMark]] of Object.entries(CONV)) {
   test(`#lh no-preview waits for conversion summary (${page_})`, async ({ page }) => {
     test.setTimeout(120000);
@@ -122,31 +195,42 @@ for (const [page_, [sum, npvMark]] of Object.entries(CONV)) {
   });
 }
 
-// Megan 0d7ccf9: Convert immediately (no pre-scroll), scroll only after the summary. The summary must stay as the #lh prefix
-// and the final status must carry the full count; at most one announcement after the summary.
-for (const [page_, [sum, npvMark]] of Object.entries(CONV)) {
+// Megan 0d7ccf9 / L3: Convert immediately (no pre-scroll), scroll only after the summary. Extra rows keep some
+// previews untried at summary time in every lang×engine combo. Known failures are announced then; later
+// failures rewrite the count (≤1 update per newly found batch, never a lower count after a higher one).
+const LATE_N = 2;
+const B_N = 4 + PAD_N + LATE_N; // 30
+const B_OK = 2 + PAD_N; // 26
+const B_NPV_TOTAL = 2 + LATE_N; // 4
+for (const [page_, [, npvMark]] of Object.entries(CONV)) {
   test(`Convert immediately, scroll after summary (${page_})`, async ({ page }) => {
     test.setTimeout(120000);
     await page.setViewportSize({ width: 320, height: 640 });
-    await page.addInitScript(() => {
-      window.__lh = [];
-      document.addEventListener('DOMContentLoaded', () => {
-        const lh = document.getElementById('lh');
-        new MutationObserver(() => window.__lh.push(lh.textContent)).observe(lh, { childList: true, characterData: true, subtree: true });
-      });
-    });
+    await page.addInitScript(watchLh());
     await page.goto(page_);
-    await page.setInputFiles('#files', ['ok1.png', 'bad1.jpg', 'bad2.jpg', 'ok2.jpg', 'big56mp.png'].map((f) => FX + f));
-    await expect(page.locator('#list > li')).toHaveCount(5);
+    const sum = await fmtConverted(page, B_OK, B_N);
+    await page.setInputFiles('#files', [...CORE_AB, ...padFiles(), ...lateBroken(LATE_N)]);
+    await expect(page.locator('#list > li')).toHaveCount(B_N);
+    await revealListHead(page);
+    // No full-list pre-scroll: wait only for the on-screen failure so k≥1 is deterministic, then convert.
+    await expect.poll(() => page.locator('#list .th.is-error').count(), { timeout: 15000 }).toBeGreaterThanOrEqual(1);
+    await expect(page.locator('#list .th.skeleton')).not.toHaveCount(0);
     await page.click('#convert');
     await expect(page.locator('#lh')).toContainText(sum, { timeout: 90000 });
+    const sk = await page.locator('#list .th.skeleton').count();
+    expect(sk, 'previews still untried at summary (late path)').toBeGreaterThan(0);
+    const k = await page.locator('#list .th.is-error').count();
+    expect(k, 'at least one on-screen preview failure known at summary').toBeGreaterThanOrEqual(1);
+    const atSum = `${sum} · ${await fmtNoPv(page, k)}`;
+    await expect(page.locator('#lh')).toHaveText(atSum);
     const heights = () => page.locator('#list > li').evaluateAll((ls) => ls.map((l) => l.getBoundingClientRect().height));
     const h0 = await heights();
     await page.mouse.move(160, 400);
-    for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 200); await page.waitForTimeout(80); }
+    for (let i = 0; i < 40; i++) { await page.mouse.wheel(0, 200); await page.waitForTimeout(40); }
     await page.locator('#list > li').last().scrollIntoViewIfNeeded();
-    const final = `${sum} · ${NPV3[page_]}`;
-    await expect(page.locator('#list .th.is-error')).toHaveCount(3, { timeout: 30000 });
+    const final = `${sum} · ${await fmtNoPv(page, B_NPV_TOTAL)}`;
+    await expect(page.locator('#list .th.skeleton')).toHaveCount(0, { timeout: 30000 });
+    await expect(page.locator('#list .th.is-error')).toHaveCount(B_NPV_TOTAL, { timeout: 30000 });
     await expect(page.locator('#lh')).toHaveText(final, { timeout: 10000 });
     await page.waitForTimeout(1500);
     await expect(page.locator('#lh')).toHaveText(final);
@@ -155,9 +239,110 @@ for (const [page_, [sum, npvMark]] of Object.entries(CONV)) {
     expect(log.slice(0, iSum).some((x) => x.includes(npvMark)), `no no-preview text during conversion: ${JSON.stringify(log)}`).toBe(false);
     const after = log.slice(iSum);
     expect(after.every((x) => x.startsWith(sum)), `summary kept as prefix: ${JSON.stringify(log)}`).toBe(true);
-    expect(after.length, `at most summary + one update: ${JSON.stringify(log)}`).toBeLessThanOrEqual(2);
+    const counts = npvCounts(after, sum);
+    expect(counts.every((n) => Number.isFinite(n)), `parseable no-preview counts: ${JSON.stringify(after)}`).toBe(true);
+    for (let i = 1; i < counts.length; i++) {
+      expect(counts[i], `no lower count after a higher one: ${JSON.stringify(after)}`).toBeGreaterThanOrEqual(counts[i - 1]);
+      expect(counts[i], `≤1 update per newly found batch (count must change): ${JSON.stringify(after)}`).not.toBe(counts[i - 1]);
+    }
     expect(after.at(-1)).toBe(final);
     const h1 = await heights();
     expect(h1, 'preview failures after the summary must not change row heights').toEqual(h0);
+  });
+}
+
+// L1: convert and never scroll — known on-screen failures are announced at summary while off-screen rows stay skeleton.
+const A_N = 4 + PAD_N; // 28
+const A_OK = 2 + PAD_N; // 26
+for (const page_ of Object.keys(CONV)) {
+  test(`#lh announces known preview failures at summary without scroll (${page_})`, async ({ page }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto(page_);
+    const sum = await fmtConverted(page, A_OK, A_N);
+    await page.setInputFiles('#files', [...CORE_AB, ...padFiles()]);
+    await expect(page.locator('#list > li')).toHaveCount(A_N);
+    await revealListHead(page);
+    await expect.poll(() => page.locator('#list .th.is-error').count(), { timeout: 15000 }).toBeGreaterThanOrEqual(1);
+    await expect(page.locator('#list .th.skeleton')).not.toHaveCount(0);
+    await page.click('#convert');
+    await expect(page.locator('#lh')).toContainText(sum, { timeout: 90000 });
+    const sk = await page.locator('#list .th.skeleton').count();
+    expect(sk, 'off-screen previews stay untried (no scroll)').toBeGreaterThan(0);
+    const k = await page.locator('#list .th.is-error').count();
+    expect(k, 'known on-screen failures at summary').toBeGreaterThanOrEqual(1);
+    const want = `${sum} · ${await fmtNoPv(page, k)}`;
+    await expect(page.locator('#lh')).toHaveText(want);
+    await page.waitForTimeout(1500);
+    await expect(page.locator('#lh')).toHaveText(want);
+    expect(await page.locator('#list .th.skeleton').count(), 'still untried after 1500ms (no scroll)').toBeGreaterThan(0);
+  });
+}
+
+// Megan L2: removing a failed row after the final announcement keeps the removal message (no recount).
+for (const [page_, [sum5]] of Object.entries(CONV)) {
+  test(`#lh removal after final announcement is not followed by a recount (${page_})`, async ({ page }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.addInitScript(watchLh());
+    await page.goto(page_);
+    await page.setInputFiles('#files', CORE_FX);
+    await expect(page.locator('#list > li')).toHaveCount(5);
+    await page.locator('#list > li').last().scrollIntoViewIfNeeded();
+    await page.waitForTimeout(100);
+    await page.click('#convert');
+    const final = `${sum5} · ${NPV3[page_]}`;
+    await expect(page.locator('#list .th.is-error')).toHaveCount(3, { timeout: 90000 });
+    await expect(page.locator('#lh')).toHaveText(final, { timeout: 90000 });
+    await page.waitForTimeout(1500);
+    await expect(page.locator('#lh')).toHaveText(final);
+    const err = page.locator('#list > li').filter({ has: page.locator('.th.is-error') }).first();
+    const fileName = await err.locator('.fn').evaluate((el) => el.textContent);
+    await err.locator('.rm').click();
+    const removed = await fmtRemoved(page, fileName, 4);
+    await expect(page.locator('#lh')).toHaveText(removed);
+    await page.waitForTimeout(1500);
+    await expect(page.locator('#lh')).toHaveText(removed);
+    const log = await page.evaluate(() => window.__lh);
+    const iRm = log.lastIndexOf(removed);
+    expect(iRm, `removal present in ${JSON.stringify(log)}`).toBeGreaterThan(-1);
+    expect(log.slice(iRm).every((x) => x === removed), `no no-preview recount after removal: ${JSON.stringify(log)}`).toBe(true);
+  });
+}
+
+// Olivia L2: remove a row while lazy previews are still untried. A later failure must keep the
+// removal text as the #lh prefix (`<removal> · <noPreviewN>`), not replace it with a bare count.
+for (const page_ of Object.keys(CONV)) {
+  test(`#lh late preview after removal keeps prefix (${page_})`, async ({ page }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto(page_);
+    const sum = await fmtConverted(page, B_OK, B_N);
+    await page.setInputFiles('#files', [...CORE_AB, ...padFiles(), ...lateBroken(LATE_N)]);
+    await expect(page.locator('#list > li')).toHaveCount(B_N);
+    await revealListHead(page);
+    await expect.poll(() => page.locator('#list .th.is-error').count(), { timeout: 15000 }).toBeGreaterThanOrEqual(1);
+    await expect(page.locator('#list .th.skeleton')).not.toHaveCount(0);
+    await page.click('#convert');
+    await expect(page.locator('#lh')).toContainText(sum, { timeout: 90000 });
+    expect(await page.locator('#list .th.skeleton').count(), 'previews still loading at summary').toBeGreaterThan(0);
+    const err = page.locator('#list > li').filter({ has: page.locator('.th.is-error') }).first();
+    const fileName = await err.locator('.fn').evaluate((el) => el.textContent);
+    await err.locator('.rm').click();
+    const removed = await fmtRemoved(page, fileName, B_N - 1);
+    await expect(page.locator('#lh')).toHaveText(removed);
+    expect(await page.locator('#list .th.skeleton').count(), 'still untried after remove').toBeGreaterThan(0);
+    await page.mouse.move(160, 400);
+    for (let i = 0; i < 40; i++) { await page.mouse.wheel(0, 200); await page.waitForTimeout(40); }
+    await page.locator('#list > li').last().scrollIntoViewIfNeeded();
+    await expect(page.locator('#list .th.skeleton')).toHaveCount(0, { timeout: 30000 });
+    const k = await page.locator('#list .th.is-error').count();
+    expect(k, 'late preview failures after removal').toBeGreaterThanOrEqual(1);
+    const npv = await fmtNoPv(page, k);
+    const final = `${removed} · ${npv}`;
+    await expect(page.locator('#lh')).toHaveText(final, { timeout: 10000 });
+    await page.waitForTimeout(1500);
+    await expect(page.locator('#lh')).toHaveText(final);
+    expect(await page.locator('#lh').textContent(), 'must not collapse to a bare no-preview count').not.toBe(npv);
   });
 }
