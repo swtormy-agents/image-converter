@@ -309,3 +309,40 @@ for (const [page_, [sum5]] of Object.entries(CONV)) {
     expect(log.slice(iRm).every((x) => x === removed), `no no-preview recount after removal: ${JSON.stringify(log)}`).toBe(true);
   });
 }
+
+// Olivia L2: remove a row while lazy previews are still untried. A later failure must keep the
+// removal text as the #lh prefix (`<removal> · <noPreviewN>`), not replace it with a bare count.
+for (const page_ of Object.keys(CONV)) {
+  test(`#lh late preview after removal keeps prefix (${page_})`, async ({ page }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto(page_);
+    const sum = await fmtConverted(page, B_OK, B_N);
+    await page.setInputFiles('#files', [...CORE_AB, ...padFiles(), ...lateBroken(LATE_N)]);
+    await expect(page.locator('#list > li')).toHaveCount(B_N);
+    await revealListHead(page);
+    await expect.poll(() => page.locator('#list .th.is-error').count(), { timeout: 15000 }).toBeGreaterThanOrEqual(1);
+    await expect(page.locator('#list .th.skeleton')).not.toHaveCount(0);
+    await page.click('#convert');
+    await expect(page.locator('#lh')).toContainText(sum, { timeout: 90000 });
+    expect(await page.locator('#list .th.skeleton').count(), 'previews still loading at summary').toBeGreaterThan(0);
+    const err = page.locator('#list > li').filter({ has: page.locator('.th.is-error') }).first();
+    const fileName = await err.locator('.fn').evaluate((el) => el.textContent);
+    await err.locator('.rm').click();
+    const removed = await fmtRemoved(page, fileName, B_N - 1);
+    await expect(page.locator('#lh')).toHaveText(removed);
+    expect(await page.locator('#list .th.skeleton').count(), 'still untried after remove').toBeGreaterThan(0);
+    await page.mouse.move(160, 400);
+    for (let i = 0; i < 40; i++) { await page.mouse.wheel(0, 200); await page.waitForTimeout(40); }
+    await page.locator('#list > li').last().scrollIntoViewIfNeeded();
+    await expect(page.locator('#list .th.skeleton')).toHaveCount(0, { timeout: 30000 });
+    const k = await page.locator('#list .th.is-error').count();
+    expect(k, 'late preview failures after removal').toBeGreaterThanOrEqual(1);
+    const npv = await fmtNoPv(page, k);
+    const final = `${removed} · ${npv}`;
+    await expect(page.locator('#lh')).toHaveText(final, { timeout: 10000 });
+    await page.waitForTimeout(1500);
+    await expect(page.locator('#lh')).toHaveText(final);
+    expect(await page.locator('#lh').textContent(), 'must not collapse to a bare no-preview count').not.toBe(npv);
+  });
+}

@@ -147,7 +147,10 @@ function remove(it){if(busy)return;const i=items.indexOf(it);if(i<0)return;const
   dropItem(it);it.li.remove();items.splice(i,1);syncUI();
   if(nx)nx.rm.focus();else $('files').focus();
   const n=items.length;
-  status.textContent=(n===0?t('removed_zero','Removed {name}. The list is empty',{name}):tp('removed',n,'Removed {name}. {n} file in the list','Removed {name}. {n} files in the list').split('{name}').join(name));}
+  const r=(n===0?t('removed_zero','Removed {name}. The list is empty',{name}):tp('removed',n,'Removed {name}. {n} file in the list','Removed {name}. {n} files in the list').split('{name}').join(name));
+  // Keep lhSum aligned with #lh so a later announceNoPv still writes «<prefix> · <noPreviewN>»
+  // (Olivia L2: after remove, cur no longer starts with the conversion summary).
+  status.textContent=r;lhSum=lhSum?r:'';}
 function add(files){
   for(const f of files){const li=el('li','row'),meta=el('div','meta'),sub=el('span','sub'),rs=el('span','rs');
     meta.append(splitName(f.name));sub.append(el('span',null,kb(f.size)));const pill=el('span','pill');sub.append(pill);meta.append(sub,rs);
