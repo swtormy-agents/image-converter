@@ -21,6 +21,16 @@ npm --prefix tools run check:css    # builds twice, compares sha256, checks buil
 ## Pages
 
 `python3 tools/gen.py` regenerates the en/ru/zh pages from `tools/i18n/`.
+A second run must leave a clean `git status` (spec AC8).
+
+## Interlinking checker (spec v3 §5 AC1–AC9 for this repo)
+
+```sh
+python3 tools/scripts/check-interlinking.py
+# or: npm --prefix tools run check:interlinking
+```
+
+AC2 (home Popular links) is out of scope here. AC4 live HTTP 200 is left to Megan on the release SHA — the checker validates href form (no `utm`/`ref`/`#`, no nofollow/onclick) and same-language paths.
 
 ## E2E (Playwright)
 

@@ -6,6 +6,7 @@ plain text and HTML-escaped here) and tools/i18n/privacy.<lang>.html."""
 import re,os,html,json,subprocess,hashlib
 os.chdir(os.path.join(os.path.dirname(__file__),'..'))
 BASE='https://noclaudkit.com/image-converter/'
+SITE='https://noclaudkit.com'
 CSP="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
 LANGS=['en','ru','zh']
 HREFLANG={'en':'en','ru':'ru','zh':'zh-Hans'}
@@ -31,16 +32,56 @@ def href(cur,tl,p):
     h=('' if cur=='en' else '../')+lp(tl)+('' if p=='index.html' else p)
     return h or './'
 
+def ld_dumps(d):
+    return json.dumps(d,ensure_ascii=False).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
 def jsonld(lang,page,title,desc):
     d={'@context':'https://schema.org','@type':'WebApplication','name':title,'description':desc,'url':url(lang,page),'inLanguage':HREFLANG[lang],
        'applicationCategory':'MultimediaApplication','operatingSystem':'Any','isAccessibleForFree':True,'offers':{'@type':'Offer','price':'0','priceCurrency':'USD'}}
-    j=json.dumps(d,ensure_ascii=False).replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026')
-    return f'<script type="application/ld+json">{j}</script>\n'
+    return f'<script type="application/ld+json">{ld_dumps(d)}</script>\n'
+def home_path(l): return '/' if l=='en' else f'/{l}/'
+def home_abs(l): return SITE+home_path(l)
+def conv_path(l): return '/image-converter/' if l=='en' else f'/image-converter/{l}/'
+def pdf_path(l): return '/pdf/' if l=='en' else f'/pdf/{l}/'
+LANDING_PAGES={f'{a}-to-{b}.html' for a,b,*_ in PAIRS}
+HEIC_LANDINGS={'heic-to-jpg.html','heic-to-png.html'}
+def page_label(T,page):
+    if page=='index.html': return T['f_conv']
+    if page=='privacy.html': return T['f_priv']
+    if page=='licenses.html': return T['f_lic']
+    if page=='heic-to-jpg.html': return T['ft_heic']
+    for a,b,A,B,_ in PAIRS:
+        if page==f'{a}-to-{b}.html': return T['pair_link'].format(A=A,B=B)
+    raise ValueError(page)
+def crumb_items(T,lang,page):
+    """(visible name, absolute canonical URL, href or None if current)."""
+    items=[('NoClaudKit',home_abs(lang),home_path(lang))]
+    if page=='index.html':
+        items.append((T['f_conv'],url(lang,page),None)); return items
+    items.append((T['f_conv'],url(lang,'index.html'),conv_path(lang)))
+    items.append((page_label(T,page),url(lang,page),None))
+    return items
+def crumbs_html(T,lang,page):
+    lis=[]
+    for name,absu,href in crumb_items(T,lang,page):
+        if href is None: lis.append(f'<li><span aria-current="page">{e(name)}</span></li>')
+        else:
+            extra=' translate="no"' if name=='NoClaudKit' else ''
+            lis.append(f'<li><a href="{href}"{extra}>{e(name)}</a></li>')
+    return f'<nav class="crumbs" aria-label="{e(T["crumbs_aria"])}"><ol>'+''.join(lis)+'</ol></nav>\n'
+def crumbs_ld(T,lang,page):
+    el=[{'@type':'ListItem','position':i+1,'name':name.replace('\u00a0',' '),'item':absu} for i,(name,absu,_) in enumerate(crumb_items(T,lang,page))]
+    return f'<script type="application/ld+json">{ld_dumps({"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":el})}</script>\n'
+def xpdf(T,lang,page):
+    if page=='index.html': href,lab=pdf_path(lang),T['ft_pdf']
+    elif page in HEIC_LANDINGS: href,lab=pdf_path(lang)+'jpg-to-pdf.html',T['xpdf_heic']
+    elif page in LANDING_PAGES: href,lab=pdf_path(lang)+'jpg-to-pdf.html',T['xpdf_jpg']
+    else: return ''
+    return f'<p class="xpdf mt-8"><a class="link link-primary inline-flex items-center min-h-11" href="{href}">{e(lab)}</a></p>\n'
 DOC_PAGES={'privacy.html','licenses.html'}
 LD_PAGES={'index.html'}|{f'{a}-to-{b}.html' for a,b,*_ in PAIRS}  # JSON-LD on index and tool pages only, not privacy/licences
 
 NB='\u00a0'
-PLAIN_KEYS={'tagline','removed_zero','removed_one','removed_few','removed_many','removed_other'}  # tagline: OG alt plain spaces; removed_*: Nathan aria-live texts, plain spaces by design
+PLAIN_KEYS={'tagline','removed_zero','removed_one','removed_few','removed_many','removed_other','crumbs_aria','about_aria'}  # tagline: OG alt plain spaces; removed_*: Nathan aria-live texts, plain spaces by design; crumbs_aria/about_aria: aria-labels, no NBSP
 RU_SHORT='не|и|с|в|на|к|о|у|а|из|за|по|от|до|я|ни|но|же|ли'
 def ru_nbsp(s): return re.sub(r'(?<![\w\u0400-\u04ff])('+RU_SHORT+r') ',lambda m:m.group(1)+NB,s,flags=re.I)
 def check_ru(T,path='ru'):
@@ -61,7 +102,7 @@ LANG_CODE={'en':'EN','ru':'RU','zh':''}  # right-hand codes of the inactive item
 X_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
 def head(T,lang,page,title,desc,out=None):
     P='' if lang=='en' else '../'
-    ld=jsonld(lang,page,title,desc) if page in LD_PAGES else ''
+    ld=(jsonld(lang,page,title,desc) if page in LD_PAGES else '')+crumbs_ld(T,lang,page)
     alts=''.join(f'<link rel="alternate" hreflang="{HREFLANG[l]}" href="{url(l,page)}">' for l in LANGS)+f'<link rel="alternate" hreflang="x-default" href="{url("en",page)}">'
     ROOT=re.sub(r'^https?://[^/]+','',BASE)  # '/image-converter/': language links (inline list and dropdown) are root-relative plain <a href>, no JS
     # Selectors v2, variant B «Одно меню» (spec /workspace/design/selectors-v2/spec.md, owner-approved 2026-10-15):
@@ -97,7 +138,7 @@ def head(T,lang,page,title,desc,out=None):
 <div class="navbar-start min-w-0 w-auto grow"><a class="brand flex items-center gap-2 min-h-11 font-semibold text-sm sm:text-lg whitespace-nowrap" href="./" translate="no">{ICON}<span>Local{NB}Image{NB}Converter</span></a></div>
 <div class="navbar-end w-auto">{nav}</div></div></header>
 <main class="mx-auto w-full max-w-4xl px-4 sm:px-6 py-8 sm:py-12 grow">
-'''
+{crumbs_html(T,lang,page)}'''
 def hero(h1,lede,T,pnote=''):
     return (f'<section class="intro"><h1 class="text-3xl sm:text-5xl font-bold tracking-tight text-balance max-w-3xl">{e(h1)}</h1><p class="lede hidden sm:block mt-4 text-lg text-base-content/80 max-w-2xl text-pretty">{e(lede)}</p><p class="lede-m sm:hidden mt-3 text-base-content/80">{e(T["lede_m"])}</p>'
             +(f'<p class="pnote hidden sm:flex alert alert-outline mt-4 text-sm">{e(pnote)}</p>' if pnote else '')+'</section>\n')
@@ -121,10 +162,28 @@ def pairlinks(T,page=''):  # «Лагуна»: pair links as daisyUI buttons; th
         cur=page==f'{a}-to-{b}.html'
         return f'<li><a class="btn {"btn-primary" if cur else "btn-outline"} min-h-11 w-full justify-start font-medium" href="{a}-to-{b}.html"'+(' aria-current="page"' if cur else '')+f'>{e(T["pair_link"].format(A=A,B=B))}</a></li>'
     return '<section class="pop mt-12" aria-labelledby="pp"><h2 id="pp" class="text-2xl font-semibold">'+e(T['popular'])+'</h2><ul class="pairs grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4">'+''.join(li(a,b,A,B) for a,b,A,B,_ in PAIRS)+'</ul></section>'
-def foot(T):
-    links=[('./',T['f_conv']),('privacy.html',T['f_priv']),('licenses.html',T['f_lic']),('https://github.com/swtormy-agents/image-converter','GitHub')]
-    return (f'</main>\n<footer class="bg-base-200 mt-8"><div class="footer sm:footer-horizontal mx-auto max-w-4xl px-4 sm:px-6 py-6 text-base-content"><p class="max-w-xl text-sm"><span class="foot-x hidden sm:inline">{e(T["foot"])} </span>{e(T["legal"])}</p><ul class="flinks flex flex-wrap gap-x-4">'
-            +''.join(f'<li><a class="link link-hover min-h-11 min-w-11 inline-flex items-center justify-center" href="{h}">{e(t)}</a></li>' for h,t in links)+'</ul></div></footer></body></html>\n')
+def foot(T,lang,page):
+    cur=conv_path(lang) if page=='index.html' else conv_path(lang)+page
+    tools=[
+        (home_path(lang),'NoClaudKit',True),
+        (conv_path(lang),T['f_conv'],False),
+        (pdf_path(lang),T['ft_pdf'],False),
+        (conv_path(lang)+'heic-to-jpg.html',T['ft_heic'],False),
+        (pdf_path(lang)+'merge-pdf.html',T['ft_merge'],False),
+        (pdf_path(lang)+'split-pdf.html',T['ft_split'],False),
+        (pdf_path(lang)+'jpg-to-pdf.html',T['ft_jpgpdf'],False),
+    ]
+    def tool_a(h,t,tno):
+        extra=(' translate="no"' if tno else '')+(' aria-current="page"' if h==cur else '')
+        return f'<li><a href="{h}"{extra}>{e(t)}</a></li>'
+    about=[('privacy.html',T['f_priv']),('licenses.html',T['f_lic']),('https://github.com/swtormy-agents/image-converter','GitHub')]
+    return (f'</main>\n<footer class="bg-base-200 mt-8"><div class="mx-auto max-w-4xl px-4 sm:px-6 py-6 text-base-content">'
+            f'<nav class="ft" aria-labelledby="ft-h"><h2 id="ft-h" class="text-sm font-medium text-base-content/80">{e(T["ft_all"])}</h2>'
+            f'<ul>'+''.join(tool_a(*x) for x in tools)+'</ul></nav>'
+            f'<div class="footer sm:footer-horizontal mt-6"><p class="max-w-xl text-sm"><span class="foot-x hidden sm:inline">{e(T["foot"])} </span>{e(T["legal"])}</p>'
+            f'<nav aria-label="{e(T["about_aria"])}"><ul class="flinks flex flex-wrap gap-x-4">'
+            +''.join(f'<li><a class="link link-hover min-h-11 min-w-11 inline-flex items-center justify-center" href="{h}">{e(t)}</a></li>' for h,t in about)
+            +'</ul></nav></div></div></footer></body></html>\n')
 def rebase(body):  # make relative links in English bodies work from /ru/ and /zh/
     return re.sub(r'href="(?!https?:|#|\.\./|mailto:)([^"]+)"',r'href="../\1"',body)
 
@@ -132,24 +191,26 @@ def rebase(body):  # make relative links in English bodies work from /ru/ and /z
 EN_BODY={}
 for f in ('privacy.html','licenses.html'):
     s=open(f,encoding='utf-8').read(); body=re.search(r'<main[^>]*>\n(.*?)</main>',s,re.S).group(1)
+    body=re.sub(r'<nav class="crumbs"[^>]*>.*?</nav>\n','',body)
     body=re.sub(r'<p class="note"><b>Browser testing:</b>.*?</p>\n','',body); body=re.sub(r'<section class="(?:pairs|pop)[^"]*".*?</section>\n','',body)
+    body=re.sub(r'<p class="xpdf[^"]*"[^>]*>.*?</p>\n','',body)
     EN_BODY[f]=body
 
 def render(lang,T):
     P='' if lang=='en' else '../'; out={}
     out['index.html']=(head(T,lang,'index.html',T['index_title'],T['index_desc'])
-     +hero(T['index_h1'],T['index_lead'],T)+tool(T,P)+limits(T)+more(T,T['index_lead'])+pairlinks(T)+'\n'+foot(T))
+     +hero(T['index_h1'],T['index_lead'],T)+tool(T,P)+limits(T)+more(T,T['index_lead'])+pairlinks(T)+xpdf(T,lang,'index.html')+'\n'+foot(T,lang,'index.html'))
     for a,b,A,B,mime in PAIRS:
         p=f'{a}-to-{b}.html'; lead=T['pair_lead'].format(A=A,B=B); dec=T['notes'][a] if a in('heic','avif') else ''  # decoder/browser-support note (Limitations + mobile «Подробнее»)
         pm=T.get('pair_meta',{}).get(p,{})  # approved per-page overrides
         out[p]=(head(T,lang,p,pm.get('title',T['pair_title'].format(A=A,B=B)),pm.get('desc',T['pair_desc'].format(A=A,B=B)),mime)
-         +hero(T['pair_h1'].format(A=A,B=B),lead,T,T['outn'][b])+tool(T,P,a=='heic')+limits(T,dec)+more(T,lead,T['outn'][b],dec,a=='heic')+pairlinks(T,p)+'\n'+foot(T))
+         +hero(T['pair_h1'].format(A=A,B=B),lead,T,T['outn'][b])+tool(T,P,a=='heic')+limits(T,dec)+more(T,lead,T['outn'][b],dec,a=='heic')+pairlinks(T,p)+xpdf(T,lang,p)+'\n'+foot(T,lang,p))
     if lang=='en': pb,lb=EN_BODY['privacy.html'],EN_BODY['licenses.html']
     else:
         pb='<p class="note prevails">'+T['prevails_html']+'</p>\n'+open(f'tools/i18n/privacy.{lang}.html',encoding='utf-8').read()
         lb='<p class="note prevails">'+T['licenses_note_html']+'</p>\n<div lang="en">\n'+rebase(EN_BODY['licenses.html'])+'</div>\n'
-    out['privacy.html']=head(T,lang,'privacy.html',T['privacy_title'],T['privacy_desc'])+pb+safari(T)+'\n'+pairlinks(T)+'\n'+foot(T)
-    out['licenses.html']=head(T,lang,'licenses.html',T['licenses_title'],T['licenses_desc'])+lb+safari(T)+'\n'+pairlinks(T)+'\n'+foot(T)
+    out['privacy.html']=head(T,lang,'privacy.html',T['privacy_title'],T['privacy_desc'])+pb+safari(T)+'\n'+pairlinks(T)+'\n'+foot(T,lang,'privacy.html')
+    out['licenses.html']=head(T,lang,'licenses.html',T['licenses_title'],T['licenses_desc'])+lb+safari(T)+'\n'+pairlinks(T)+'\n'+foot(T,lang,'licenses.html')
     return out
 
 def selftest():
@@ -166,7 +227,13 @@ def selftest():
         assert '&lt;script&gt;alert(1)' in s, f'escaped test string missing in {p}'
         for m in re.findall(r'<script type="application/ld\+json">(.*?)</script>',s,re.S):
             assert '<' not in m and '>' not in m and '&' not in m, f'raw markup in JSON-LD in {p}'
-            assert json.loads(m)['name'].endswith(bad), f'JSON-LD name mismatch in {p}'
+            data=json.loads(m)
+            if data.get('@type')=='BreadcrumbList':
+                for it in data['itemListElement']:
+                    if it['name']=='NoClaudKit': continue
+                    assert bad in it['name'], f'JSON-LD crumb name mismatch in {p}'
+            else:
+                assert data['name'].endswith(bad), f'JSON-LD name mismatch in {p}'
 selftest()
 check_ru(I18N["ru"])
 _pv=re.sub(r'<code>.*?</code>|<[^>]+>',' ',open('tools/i18n/privacy.ru.html',encoding='utf-8').read(),flags=re.S)  # visible text only
