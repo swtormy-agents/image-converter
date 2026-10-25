@@ -1,6 +1,7 @@
 // Card «Превью: строка с ошибкой растёт на 320 (CLS)»: a failed lazy thumbnail decode must not change the row height.
 import { test, expect } from '@playwright/test';
 import { deflateSync, crc32 } from 'node:zlib';
+import { readFileSync } from 'node:fs';
 
 function png() { // 2x2 valid PNG
   const chunk = (t, d) => { const b = Buffer.alloc(12 + d.length); b.writeUInt32BE(d.length, 0); b.write(t, 4); d.copy(b, 8); b.writeUInt32BE(crc32(Buffer.concat([Buffer.from(t), d])), 8 + d.length); return b; };
@@ -93,7 +94,16 @@ const NPV3 = { 'index.html': 'No preview for 3 files', 'ru/index.html': 'Нет 
 const CORE_FX = ['ok1.png', 'bad1.jpg', 'bad2.jpg', 'ok2.jpg', 'big56mp.png'].map((f) => FX + f);
 // CORE: 3 convert OK (ok1, ok2, big56mp), 2 convert fail (bad1, bad2); 3 preview fails (bad1, bad2, big56mp).
 // A/B omit big56mp so conversion stays fast; on-screen fails are still bad1/bad2.
-const CORE_AB = ['ok1.png', 'bad1.jpg', 'bad2.jpg', 'ok2.jpg'].map((f) => FX + f);
+// Buffers (not paths): setInputFiles cannot mix file paths with {name, mimeType, buffer} pads.
+function fxBuf(name, mimeType) {
+  return { name, mimeType, buffer: readFileSync(FX + name) };
+}
+const CORE_AB = [
+  fxBuf('ok1.png', 'image/png'),
+  fxBuf('bad1.jpg', 'image/jpeg'),
+  fxBuf('bad2.jpg', 'image/jpeg'),
+  fxBuf('ok2.jpg', 'image/jpeg'),
+];
 const PAD_N = 24;
 function padFiles(n = PAD_N) {
   return Array.from({ length: n }, (_, i) => ({ name: `pad-${i}.png`, mimeType: 'image/png', buffer: png() }));
@@ -148,6 +158,11 @@ function npvCounts(after, sum) {
     return m ? Number(m[1]) : NaN;
   });
 }
+// On localized pages the drop zone + copy can push #list below the IO margin at 320×640.
+// Reveal only the first row (not a full-list scroll) so on-screen failures exist; later pads stay skeleton.
+async function revealListHead(page) {
+  await page.locator('#list > li').first().scrollIntoViewIfNeeded();
+}
 for (const [page_, [sum, npvMark]] of Object.entries(CONV)) {
   test(`#lh no-preview waits for conversion summary (${page_})`, async ({ page }) => {
     test.setTimeout(120000);
@@ -196,7 +211,8 @@ for (const [page_, [, npvMark]] of Object.entries(CONV)) {
     const sum = await fmtConverted(page, B_OK, B_N);
     await page.setInputFiles('#files', [...CORE_AB, ...padFiles(), ...lateBroken(LATE_N)]);
     await expect(page.locator('#list > li')).toHaveCount(B_N);
-    // No pre-scroll: wait only for the on-screen failure so k≥1 is deterministic, then convert.
+    await revealListHead(page);
+    // No full-list pre-scroll: wait only for the on-screen failure so k≥1 is deterministic, then convert.
     await expect.poll(() => page.locator('#list .th.is-error').count(), { timeout: 15000 }).toBeGreaterThanOrEqual(1);
     await expect(page.locator('#list .th.skeleton')).not.toHaveCount(0);
     await page.click('#convert');
@@ -246,6 +262,7 @@ for (const page_ of Object.keys(CONV)) {
     const sum = await fmtConverted(page, A_OK, A_N);
     await page.setInputFiles('#files', [...CORE_AB, ...padFiles()]);
     await expect(page.locator('#list > li')).toHaveCount(A_N);
+    await revealListHead(page);
     await expect.poll(() => page.locator('#list .th.is-error').count(), { timeout: 15000 }).toBeGreaterThanOrEqual(1);
     await expect(page.locator('#list .th.skeleton')).not.toHaveCount(0);
     await page.click('#convert');
