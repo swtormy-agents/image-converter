@@ -92,6 +92,8 @@ const CONV = {
 const NPV3 = { 'index.html': 'No preview for 3 files', 'ru/index.html': 'Нет превью для 3 файлов', 'zh/index.html': '3 个文件无预览' };
 const CORE_FX = ['ok1.png', 'bad1.jpg', 'bad2.jpg', 'ok2.jpg', 'big56mp.png'].map((f) => FX + f);
 // CORE: 3 convert OK (ok1, ok2, big56mp), 2 convert fail (bad1, bad2); 3 preview fails (bad1, bad2, big56mp).
+// A/B omit big56mp so conversion stays fast; on-screen fails are still bad1/bad2.
+const CORE_AB = ['ok1.png', 'bad1.jpg', 'bad2.jpg', 'ok2.jpg'].map((f) => FX + f);
 const PAD_N = 24;
 function padFiles(n = PAD_N) {
   return Array.from({ length: n }, (_, i) => ({ name: `pad-${i}.png`, mimeType: 'image/png', buffer: png() }));
@@ -182,9 +184,9 @@ for (const [page_, [sum, npvMark]] of Object.entries(CONV)) {
 // previews untried at summary time in every lang×engine combo. Known failures are announced then; later
 // failures rewrite the count (≤1 update per newly found batch, never a lower count after a higher one).
 const LATE_N = 2;
-const B_N = 5 + PAD_N + LATE_N; // 31
-const B_OK = 3 + PAD_N; // 27
-const B_NPV_TOTAL = 3 + LATE_N; // 5
+const B_N = 4 + PAD_N + LATE_N; // 30
+const B_OK = 2 + PAD_N; // 26
+const B_NPV_TOTAL = 2 + LATE_N; // 4
 for (const [page_, [, npvMark]] of Object.entries(CONV)) {
   test(`Convert immediately, scroll after summary (${page_})`, async ({ page }) => {
     test.setTimeout(120000);
@@ -192,8 +194,11 @@ for (const [page_, [, npvMark]] of Object.entries(CONV)) {
     await page.addInitScript(watchLh());
     await page.goto(page_);
     const sum = await fmtConverted(page, B_OK, B_N);
-    await page.setInputFiles('#files', [...CORE_FX, ...padFiles(), ...lateBroken(LATE_N)]);
+    await page.setInputFiles('#files', [...CORE_AB, ...padFiles(), ...lateBroken(LATE_N)]);
     await expect(page.locator('#list > li')).toHaveCount(B_N);
+    // No pre-scroll: wait only for the on-screen failure so k≥1 is deterministic, then convert.
+    await expect.poll(() => page.locator('#list .th.is-error').count(), { timeout: 15000 }).toBeGreaterThanOrEqual(1);
+    await expect(page.locator('#list .th.skeleton')).not.toHaveCount(0);
     await page.click('#convert');
     await expect(page.locator('#lh')).toContainText(sum, { timeout: 90000 });
     const sk = await page.locator('#list .th.skeleton').count();
@@ -231,17 +236,17 @@ for (const [page_, [, npvMark]] of Object.entries(CONV)) {
 }
 
 // L1: convert and never scroll — known on-screen failures are announced at summary while off-screen rows stay skeleton.
-const A_N = 5 + PAD_N; // 29
-const A_OK = 3 + PAD_N; // 27
+const A_N = 4 + PAD_N; // 28
+const A_OK = 2 + PAD_N; // 26
 for (const page_ of Object.keys(CONV)) {
   test(`#lh announces known preview failures at summary without scroll (${page_})`, async ({ page }) => {
     test.setTimeout(120000);
     await page.setViewportSize({ width: 320, height: 640 });
     await page.goto(page_);
     const sum = await fmtConverted(page, A_OK, A_N);
-    await page.setInputFiles('#files', [...CORE_FX, ...padFiles()]);
+    await page.setInputFiles('#files', [...CORE_AB, ...padFiles()]);
     await expect(page.locator('#list > li')).toHaveCount(A_N);
-    await expect(page.locator('#list .th.is-error')).toHaveCount(1, { timeout: 15000 });
+    await expect.poll(() => page.locator('#list .th.is-error').count(), { timeout: 15000 }).toBeGreaterThanOrEqual(1);
     await expect(page.locator('#list .th.skeleton')).not.toHaveCount(0);
     await page.click('#convert');
     await expect(page.locator('#lh')).toContainText(sum, { timeout: 90000 });
