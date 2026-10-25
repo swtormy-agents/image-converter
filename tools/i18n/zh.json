@@ -87,6 +87,16 @@
  "foot": "免费、开源。不上传、无 Cookie、无广告。",
  "legal": "本站与任何设备、浏览器或软件厂商无关，亦未获其认可；格式名称仅用于描述。",
  "read_en": "Read in English",
+ "ft_all": "全部工具",
+ "ft_pdf": "PDF 工具",
+ "ft_heic": "HEIC 转 JPG",
+ "ft_merge": "合并 PDF",
+ "ft_split": "拆分 PDF",
+ "ft_jpgpdf": "图片转 PDF",
+ "xpdf_jpg": "将 JPG 转换为 PDF",
+ "xpdf_heic": "将照片转换为 PDF",
+ "crumbs_aria": "面包屑导航",
+ "about_aria": "关于本站",
  "pair_meta": {
   "heic-to-jpg.html": {
    "title": "HEIC 转 JPG 转换器｜在浏览器中本地转换，不上传到服务器",

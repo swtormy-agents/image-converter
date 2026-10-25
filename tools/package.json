@@ -5,6 +5,7 @@
   "scripts": {
     "build:css": "tailwindcss -i css/input.css -o ../build/app.css --minify",
     "check:css": "node scripts/check-css.mjs",
+    "check:interlinking": "python3 scripts/check-interlinking.py",
     "test:e2e": "playwright test"
   },
   "devDependencies": {

@@ -133,3 +133,18 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+/* Interlinking (spec v3 §3.4, §3.5, §4): self-hosted only, no style= attributes. */
+h1 { overflow-wrap: break-word; hyphens: auto; }
+.ft { --fg: var(--color-base-content); }
+.ft h2 { margin: 0 0 0.5rem; }
+.ft ul { list-style: none; margin: 0; padding: 0; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr)); column-gap: 1rem; }
+.ft a { display: flex; align-items: center; min-height: 44px; overflow-wrap: anywhere; }
+.ft a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 4px; }
+.ft a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.crumbs { font-size: .875rem; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
+.crumbs ol { display: flex; flex-wrap: wrap; align-items: center; list-style: none; margin: 0; padding: 0; }
+.crumbs a { display: inline-flex; align-items: center; min-height: 44px; }
+.crumbs [aria-current] { overflow-wrap: anywhere; }
+.crumbs li + li::before { content: "/"; content: "/" / ""; padding: 0 6px; }
+.flinks a { overflow-wrap: anywhere; }
