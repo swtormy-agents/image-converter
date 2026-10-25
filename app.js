@@ -88,12 +88,13 @@ function thLoading(it){const d=el('div','th skeleton');d.setAttribute('aria-hidd
 // the status line keeps an sr-only copy, so a failed lazy decode never changes the row height.
 // Coalesced polite announcement in #lh: many failed previews -> one message with the count (Megan 55cc328).
 // Single writer for #lh no-preview (Megan 5c59faf): while converting only set npvPend; the summary then gets " · <noPreviewN>" appended once.
-// Megan 0d7ccf9: the summary stays as a persistent prefix (lhSum is only reset by a new conversion/clear); later failures rewrite
-// #lh as «<summary> · <noPreviewN>», and only once every preview has been tried (no stale partial counts, one announcement).
+// Megan 0d7ccf9 / L1: the summary stays as a persistent prefix (lhSum is only reset by a new conversion/clear).
+// Known failures are appended at summary even if some lazy (off-screen) previews are still untried; later
+// failures rewrite #lh as «<summary> · <noPreviewN>» (700 ms debounce; only rewrite when the text changes).
 let npvT=0,npvPend=false,lhSum='';function npvText(){const n=items.filter(x=>x.noPv).length;return n?tp('noPreviewN',n,'No preview for {n} file','No preview for {n} files'):'';}
 function npvPending(){return items.some(x=>!x.pvDone);}
 function announceNoPv(){clearTimeout(npvT);npvT=0;if(busy){npvPend=true;return;}npvT=setTimeout(()=>{npvT=0;if(busy){npvPend=true;return;}const m=npvText();if(!m)return;
-  const cur=status.textContent;if(lhSum&&cur.startsWith(lhSum)){if(npvPending())return;const s2=lhSum+' \u00b7 '+m;if(cur!==s2)status.textContent=s2;}else{lhSum='';if(cur!==m)status.textContent=m;}},700);}
+  const cur=status.textContent;if(lhSum&&cur.startsWith(lhSum)){const s2=lhSum+' \u00b7 '+m;if(cur!==s2)status.textContent=s2;}else{lhSum='';if(cur!==m)status.textContent=m;}},700);}
 function thError(it){const np=t('noPreview','No preview'),d=el('div','th is-error');d.setAttribute('aria-hidden','true');d.title=np;d.append(icon(FILE_D),el('span','th-x',np));it.th.replaceWith(d);it.th=d;
   it.noPv=true;it.pvDone=true;announceNoPv();setRs(it,[...it.rs.childNodes].filter(n=>!n.classList||!n.classList.contains('npv')));}
 // Error status: no "No preview ·" prefix (the error already explains it); li.is-err lets the status take the full row width <600px.
@@ -176,7 +177,7 @@ btn.addEventListener('click',async()=>{
       const a=el('a','btn sec sm',t('dl','Download'));a.href=it.url;a.download=name;a.setAttribute('aria-label',t('dlName','Download {name}',{name}));it.li.insertBefore(a,it.rm);it.a=a;ok++;
     }catch(e){it.out=null;setRs(it,[el('span','err',e.friendly||t('readErr',"Couldn't read this file. Is it a supported image (HEIC, HEIF, WebP, AVIF, PNG, JPEG)?"))]);}
   }
-  busy=false;const sum=t('converted','{ok} of {n} converted',{ok,n:items.length}),pend=npvPending(),m=npvText();lhSum=sum;status.textContent=m&&!pend?sum+' \u00b7 '+m:sum;if(npvPend&&pend)announceNoPv();npvPend=false;btn.disabled=true;syncUI();
+  busy=false;const sum=t('converted','{ok} of {n} converted',{ok,n:items.length}),pend=npvPending(),m=npvText();lhSum=sum;status.textContent=m?sum+' \u00b7 '+m:sum;if(npvPend&&pend)announceNoPv();npvPend=false;btn.disabled=true;syncUI();
 });
 zipBtn.addEventListener('click',async()=>{const fs=items.filter(i=>i.out).map(i=>({name:i.out.name,blob:i.out.blob}));const seen={};fs.forEach(f=>{let n=f.name,k=1;while(seen[n])n=f.name.replace(/(\.[^.]+)$/,'-'+(k++)+'$1');seen[n]=1;f.name=n;});
   const z=await makeZip(fs);const a=document.createElement('a');a.href=URL.createObjectURL(z);a.download='converted-images.zip';document.body.appendChild(a);a.click();a.remove();});
