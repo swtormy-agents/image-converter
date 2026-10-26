@@ -68,7 +68,13 @@ for (const [page_, msg] of Object.entries(NPV)) {
   test(`#lh announces preview failure (${page_})`, async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 640 });
     await page.goto(page_);
+    await expect(page.locator('#lh')).toHaveAttribute('role', 'status');
     await expect(page.locator('#lh')).toHaveAttribute('aria-live', 'polite');
+    expect(await page.locator('#lh').evaluate((el) => el.tagName)).toBe('P');
+    expect(await page.locator('h2#lh').count(), 'live status must not be a heading').toBe(0);
+    const outline = await page.evaluate(() => [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) => h.tagName + '#' + h.id));
+    expect(outline[0], `heading outline starts at h1: ${outline}`).toMatch(/^H1#/);
+    expect(outline.every((x) => x !== 'H2#lh'), `no leftover live heading: ${outline}`).toBe(true);
     await page.setInputFiles('#files', [
       { name: 'ok1.png', mimeType: 'image/png', buffer: png() },
       { name: 'text.jpg', mimeType: 'image/jpeg', buffer: Buffer.from('QA corrupt test file, not an image.'.repeat(30)) },
@@ -119,7 +125,11 @@ function watchLh() {
     window.__lh = [];
     document.addEventListener('DOMContentLoaded', () => {
       const lh = document.getElementById('lh');
-      new MutationObserver(() => window.__lh.push(lh.textContent)).observe(lh, { childList: true, characterData: true, subtree: true });
+      let last = lh.textContent;
+      new MutationObserver(() => {
+        const next = lh.textContent;
+        if (next !== last) { last = next; window.__lh.push(next); }
+      }).observe(lh, { childList: true, characterData: true, subtree: true });
     });
   };
 }
@@ -162,6 +172,32 @@ function npvCounts(after, sum) {
 // Reveal only the first row (not a full-list scroll) so on-screen failures exist; later pads stay skeleton.
 async function revealListHead(page) {
   await page.locator('#list > li').first().scrollIntoViewIfNeeded();
+}
+// Wait until every remaining skeleton row has been observed and decoded (IO + pump), not a timed wheel.
+async function revealUntilPreviewsTried(page) {
+  const rows = page.locator('#list > li');
+  const n = await rows.count();
+  for (let i = 0; i < n; i++) {
+    const row = rows.nth(i);
+    if (await row.locator('.th.skeleton').count()) {
+      await row.scrollIntoViewIfNeeded();
+      await expect(row.locator('.th.skeleton')).toHaveCount(0, { timeout: 15000 });
+    }
+  }
+  await expect(page.locator('#list .th.skeleton')).toHaveCount(0);
+}
+// #lh rewrite is 700ms-debounced; wait until live text matches the current error count in one snapshot.
+async function expectLhMatchesKnownErrors(page, sum) {
+  await expect.poll(() => page.evaluate((sum) => {
+    const k = document.querySelectorAll('#list .th.is-error').length;
+    const I = JSON.parse(document.body.dataset.i18n || '{}');
+    const lang = document.documentElement.lang || 'en';
+    const PR = (window.Intl && Intl.PluralRules) ? new Intl.PluralRules(lang) : null;
+    const c = PR ? PR.select(k) : (k === 1 ? 'one' : 'other');
+    const s = I['noPreviewN_' + c] || I['noPreviewN_other'] || '';
+    const want = sum + ' \u00b7 ' + s.split('{n}').join(String(k));
+    return document.getElementById('lh').textContent === want && k >= 1;
+  }, sum), { timeout: 10000 }).toBe(true);
 }
 for (const [page_, [sum, npvMark]] of Object.entries(CONV)) {
   test(`#lh no-preview waits for conversion summary (${page_})`, async ({ page }) => {
@@ -221,18 +257,15 @@ for (const [page_, [, npvMark]] of Object.entries(CONV)) {
     expect(sk, 'previews still untried at summary (late path)').toBeGreaterThan(0);
     const k = await page.locator('#list .th.is-error').count();
     expect(k, 'at least one on-screen preview failure known at summary').toBeGreaterThanOrEqual(1);
-    const atSum = `${sum} · ${await fmtNoPv(page, k)}`;
-    await expect(page.locator('#lh')).toHaveText(atSum);
+    await expectLhMatchesKnownErrors(page, sum);
     const heights = () => page.locator('#list > li').evaluateAll((ls) => ls.map((l) => l.getBoundingClientRect().height));
     const h0 = await heights();
-    await page.mouse.move(160, 400);
-    for (let i = 0; i < 40; i++) { await page.mouse.wheel(0, 200); await page.waitForTimeout(40); }
-    await page.locator('#list > li').last().scrollIntoViewIfNeeded();
+    await revealUntilPreviewsTried(page);
     const final = `${sum} · ${await fmtNoPv(page, B_NPV_TOTAL)}`;
-    await expect(page.locator('#list .th.skeleton')).toHaveCount(0, { timeout: 30000 });
-    await expect(page.locator('#list .th.is-error')).toHaveCount(B_NPV_TOTAL, { timeout: 30000 });
+    await expect(page.locator('#list .th.is-error')).toHaveCount(B_NPV_TOTAL);
     await expect(page.locator('#lh')).toHaveText(final, { timeout: 10000 });
-    await page.waitForTimeout(1500);
+    // All previews tried: a pending 700ms debounce can only rewrite to `final` (same count, no-op).
+    await expect(page.locator('#list .th.skeleton')).toHaveCount(0);
     await expect(page.locator('#lh')).toHaveText(final);
     const log = await page.evaluate(() => window.__lh);
     const iSum = log.findIndex((x) => x.startsWith(sum));

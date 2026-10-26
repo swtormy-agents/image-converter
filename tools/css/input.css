@@ -75,7 +75,7 @@
   .th img { @apply block size-full object-contain object-center; }
   .th svg { @apply size-7 sm:size-9 fill-none stroke-current; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
   .th.is-error { @apply flex flex-col items-center justify-center gap-0.5; }
-  .th-x { @apply block max-w-full px-px truncate text-[0.625rem] sm:text-xs font-semibold leading-none; }
+  .th-x { @apply block max-w-full truncate text-[0.625rem] sm:text-xs font-semibold leading-none; }
   .th-alpha { background: conic-gradient(var(--color-base-300) 25%, var(--color-base-100) 0 50%, var(--color-base-300) 0 75%, var(--color-base-100) 0) 0 0 / 12px 12px; }
   .th.skeleton { background: linear-gradient(100deg, var(--color-base-200) 40%, var(--color-base-300) 50%, var(--color-base-200) 60%) 0 0 / 200% 100%; }
   /* <600px ready rows (Olivia UX, 6fce601): download button on its own line under .meta (frame 64px + gap 8px). Remove stays top-right. */
@@ -140,11 +140,12 @@ h1 { overflow-wrap: break-word; hyphens: auto; }
 .ft ul { list-style: none; margin: 0; padding: 0; display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr)); column-gap: 1rem; }
 .ft a { display: flex; align-items: center; min-height: 44px; overflow-wrap: anywhere; }
+.ft a:hover { text-decoration: underline; }
 .ft a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 4px; }
-.ft a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.ft a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration-thickness: 2px; }
 .crumbs { font-size: .875rem; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
 .crumbs ol { display: flex; flex-wrap: wrap; align-items: center; list-style: none; margin: 0; padding: 0; }
 .crumbs a { display: inline-flex; align-items: center; min-height: 44px; }
 .crumbs [aria-current] { overflow-wrap: anywhere; }
-.crumbs li + li::before { content: "/"; content: "/" / ""; padding: 0 6px; }
+.crumbs li:not(:last-child)::after { content: "/"; content: "/" / ""; padding: 0 6px; }
 .flinks a { overflow-wrap: anywhere; }

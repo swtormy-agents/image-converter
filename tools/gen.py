@@ -148,7 +148,7 @@ def tool(T,P,heic=True):
 <div class="field flex flex-col gap-2"><label for="q" class="text-sm font-medium">{e(T['quality_label'])}</label><div class="qrow flex items-center gap-3 min-h-11"><input class="grow h-11 accent-primary cursor-pointer" id="q" name="quality" type="range" min="0.5" max="1" step="0.05" value="0.85"><output id="qv" for="q" class="qv font-medium tabular-nums w-10 text-end">{e(T['q_default'])}</output></div></div></div>
 <div class="bar mt-4"><div class="actions flex flex-col-reverse sm:flex-row gap-2 sm:justify-end"><button id="clear" type="button" class="btn sec btn-outline min-h-11" disabled>{e(T['clear'])}</button><button id="zip" type="button" class="btn sec btn-outline min-h-11" disabled>{e(T['zip'])}</button><button id="convert" type="button" class="btn pri btn-primary min-h-11 px-6" disabled>{e(T['js']['convert0'])}</button></div></div>
 <noscript><p>{e(T['noscript'])}</p></noscript></section>
-<section class="results mt-4" aria-labelledby="lh"><h2 id="lh" class="lh text-center text-sm font-normal text-base-content/80 py-3" aria-live="polite">{e(T['js']['empty'])}</h2><ul id="list" class="flex flex-col gap-2"></ul></section>
+<section class="results mt-4" aria-labelledby="lh"><p role="status" id="lh" class="lh text-center text-sm font-normal text-base-content/80 py-3" aria-live="polite">{e(T['js']['empty'])}</p><ul id="list" class="flex flex-col gap-2"></ul></section>
 <script src="{P}config.js"></script><script src="{P}zip.js"></script><script src="{P}app.js"></script>
 '''
 def limits(T,extra=''):

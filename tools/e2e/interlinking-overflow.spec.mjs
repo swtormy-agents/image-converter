@@ -19,6 +19,25 @@ for (const loc of LANGS) {
         await expect(page.locator('header details.settings')).toHaveCount(1);
         const crumbsParent = await page.locator('nav.crumbs').evaluate((el) => el.closest('main') !== null);
         expect(crumbsParent, `crumbs inside main on ${loc}${p}`).toBe(true);
+        const crumbSeps = await page.locator('nav.crumbs li').evaluateAll((lis) => lis.map((li, i, all) => {
+          const after = getComputedStyle(li, '::after').content;
+          return { last: i === all.length - 1, after };
+        }));
+        expect(crumbSeps.length, `crumbs on ${loc}${p}`).toBeGreaterThan(0);
+        for (const { last, after } of crumbSeps) {
+          if (last) expect(after.includes('/'), `last crumb has no ::after slash on ${loc}${p} (${after})`).toBe(false);
+          else expect(after, `crumb separator via ::after on ${loc}${p}`).toMatch(/\//);
+        }
+        const cur = page.locator('nav.ft a[aria-current="page"]');
+        if (await cur.count()) {
+          const thick = await cur.evaluate((el) => getComputedStyle(el).textDecorationThickness);
+          const px = parseFloat(thick);
+          expect(Number.isFinite(px) && px >= 2, `aria-current thickness on ${loc}${p} (${thick})`).toBe(true);
+        }
+        const ftLink = page.locator('nav.ft a:not([aria-current])').first();
+        await ftLink.hover();
+        const hoverDeco = await ftLink.evaluate((el) => getComputedStyle(el).textDecorationLine);
+        expect(hoverDeco, `footer hover underline on ${loc}${p}`).toContain('underline');
         for (const theme of THEMES) {
           await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), theme);
           const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
