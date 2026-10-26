@@ -102,7 +102,9 @@ function writeNpv(){if(busy){npvPend=true;return;}const want=npvWant();if(want&&
 function announceNoPv(){
   const seq=++npvSeq;clearTimeout(npvT);npvT=0;if(busy){npvPend=true;return;}
   const run=()=>{if(seq!==npvSeq)return;npvT=0;if(busy){npvPend=true;return;}writeNpv();};
-  if(!npvPending()){run();return;}
+  // Immediate flush only after a conversion summary: a pre-convert all-done
+  // still uses the 700ms debounce so a quick Convert can take the count.
+  if(lhSum&&!npvPending()){run();return;}
   npvT=setTimeout(run,700);}
 function thError(it){const np=t('noPreview','No preview'),d=el('div','th is-error');d.setAttribute('aria-hidden','true');d.title=np;d.append(icon(FILE_D),el('span','th-x',np));it.th.replaceWith(d);it.th=d;
   it.noPv=true;it.pvDone=true;announceNoPv();setRs(it,[...it.rs.childNodes].filter(n=>!n.classList||!n.classList.contains('npv')));}
