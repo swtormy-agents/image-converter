@@ -142,10 +142,15 @@ h1 { overflow-wrap: break-word; hyphens: auto; }
 .ft a { display: flex; align-items: center; min-height: 44px; overflow-wrap: anywhere; }
 .ft a:hover { text-decoration: underline; }
 .ft a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 4px; }
-.ft a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration-thickness: 2px; }
+.ft a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
 .crumbs { font-size: .875rem; color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
 .crumbs ol { display: flex; flex-wrap: wrap; align-items: center; list-style: none; margin: 0; padding: 0; }
 .crumbs a { display: inline-flex; align-items: center; min-height: 44px; }
 .crumbs [aria-current] { overflow-wrap: anywhere; }
 .crumbs li:not(:last-child)::after { content: "/"; content: "/" / ""; padding: 0 6px; }
 .flinks a { overflow-wrap: anywhere; }
+/* 280px: gap-3 between brand and language switcher needs a bit of room (zh 中文 is the widest). */
+@media (max-width: 319px) {
+  header .navbar { padding-inline: 0.5rem; }
+  header .brand { font-size: 0.75rem; line-height: 1rem; }
+}

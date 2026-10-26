@@ -81,7 +81,7 @@ DOC_PAGES={'privacy.html','licenses.html'}
 LD_PAGES={'index.html'}|{f'{a}-to-{b}.html' for a,b,*_ in PAIRS}  # JSON-LD on index and tool pages only, not privacy/licences
 
 NB='\u00a0'
-PLAIN_KEYS={'tagline','removed_zero','removed_one','removed_few','removed_many','removed_other','crumbs_aria','about_aria'}  # tagline: OG alt plain spaces; removed_*: Nathan aria-live texts, plain spaces by design; crumbs_aria/about_aria: aria-labels, no NBSP
+PLAIN_KEYS={'tagline','removed_zero','removed_one','removed_few','removed_many','removed_other','crumbs_aria','about_aria','results_aria'}  # tagline: OG alt plain spaces; removed_*: Nathan aria-live texts, plain spaces by design; crumbs_aria/about_aria/results_aria: aria-labels, no NBSP
 RU_SHORT='не|и|с|в|на|к|о|у|а|из|за|по|от|до|я|ни|но|же|ли'
 def ru_nbsp(s): return re.sub(r'(?<![\w\u0400-\u04ff])('+RU_SHORT+r') ',lambda m:m.group(1)+NB,s,flags=re.I)
 def check_ru(T,path='ru'):
@@ -134,7 +134,7 @@ def head(T,lang,page,title,desc,out=None):
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{og_img(lang)}"><meta name="twitter:image:alt" content="{e(og_alt(T,lang))}">
 <meta name="color-scheme" content="light dark">
 {ld}<script src="{P}theme.js"></script><link rel="icon" href="{P}favicon.svg"><link rel="stylesheet" href="{P}build/app.css"></head><body class="min-h-screen flex flex-col bg-base-100 text-base-content antialiased{' doc' if page in DOC_PAGES else ''}"{attrs}>
-{mt}<header class="top bg-base-100 border-b border-base-300"><div class="navbar mx-auto max-w-4xl px-3 min-[360px]:px-4 sm:px-6 gap-2 min-h-16">
+{mt}<header class="top bg-base-100 border-b border-base-300"><div class="navbar mx-auto max-w-4xl px-3 min-[360px]:px-4 sm:px-6 gap-3 min-h-16">
 <div class="navbar-start min-w-0 w-auto grow"><a class="brand flex items-center gap-2 min-h-11 font-semibold text-sm sm:text-lg whitespace-nowrap" href="./" translate="no">{ICON}<span>Local{NB}Image{NB}Converter</span></a></div>
 <div class="navbar-end w-auto">{nav}</div></div></header>
 <main class="mx-auto w-full max-w-4xl px-4 sm:px-6 py-8 sm:py-12 grow">
@@ -148,7 +148,7 @@ def tool(T,P,heic=True):
 <div class="field flex flex-col gap-2"><label for="q" class="text-sm font-medium">{e(T['quality_label'])}</label><div class="qrow flex items-center gap-3 min-h-11"><input class="grow h-11 accent-primary cursor-pointer" id="q" name="quality" type="range" min="0.5" max="1" step="0.05" value="0.85"><output id="qv" for="q" class="qv font-medium tabular-nums w-10 text-end">{e(T['q_default'])}</output></div></div></div>
 <div class="bar mt-4"><div class="actions flex flex-col-reverse sm:flex-row gap-2 sm:justify-end"><button id="clear" type="button" class="btn sec btn-outline min-h-11" disabled>{e(T['clear'])}</button><button id="zip" type="button" class="btn sec btn-outline min-h-11" disabled>{e(T['zip'])}</button><button id="convert" type="button" class="btn pri btn-primary min-h-11 px-6" disabled>{e(T['js']['convert0'])}</button></div></div>
 <noscript><p>{e(T['noscript'])}</p></noscript></section>
-<section class="results mt-4" aria-labelledby="lh"><p role="status" id="lh" class="lh text-center text-sm font-normal text-base-content/80 py-3" aria-live="polite">{e(T['js']['empty'])}</p><ul id="list" class="flex flex-col gap-2"></ul></section>
+<section class="results mt-4" aria-label="{e(T['results_aria'])}"><p role="status" id="lh" class="lh text-center text-sm font-normal text-base-content/80 py-3" aria-live="polite">{e(T['js']['empty'])}</p><ul id="list" class="flex flex-col gap-2"></ul></section>
 <script src="{P}config.js"></script><script src="{P}zip.js"></script><script src="{P}app.js"></script>
 '''
 def limits(T,extra=''):

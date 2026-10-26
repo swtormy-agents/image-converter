@@ -72,6 +72,12 @@ for (const [page_, msg] of Object.entries(NPV)) {
     await expect(page.locator('#lh')).toHaveAttribute('aria-live', 'polite');
     expect(await page.locator('#lh').evaluate((el) => el.tagName)).toBe('P');
     expect(await page.locator('h2#lh').count(), 'live status must not be a heading').toBe(0);
+    await expect(page.locator('section.results')).not.toHaveAttribute('aria-labelledby');
+    await expect(page.locator('section.results')).toHaveAttribute('aria-label', {
+      'index.html': 'Your images',
+      'ru/index.html': 'Ваши изображения',
+      'zh/index.html': '您的图片',
+    }[page_]);
     const outline = await page.evaluate(() => [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')].map((h) => h.tagName + '#' + h.id));
     expect(outline[0], `heading outline starts at h1: ${outline}`).toMatch(/^H1#/);
     expect(outline.every((x) => x !== 'H2#lh'), `no leftover live heading: ${outline}`).toBe(true);

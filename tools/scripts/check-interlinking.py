@@ -81,6 +81,7 @@ def labels(l):
         'all': T['ft_all'],
         'crumbs': T['crumbs_aria'],
         'about': T['about_aria'],
+        'results': T['results_aria'],
         'read_en': T['read_en'],
     }
 
@@ -275,6 +276,19 @@ def check_page(lang, page, src, doc):
     # no inline style
     if doc.style_attrs:
         fail(7, f'{loc}: inline style= {doc.style_attrs}')
+
+    # results region: fixed aria-label (not live #lh)
+    if page not in ('privacy.html', 'licenses.html'):
+        m = re.search(r'<section class="results[^"]*"[^>]*>', src)
+        if not m:
+            fail(1, f'{loc}: missing section.results')
+        else:
+            tag = m.group(0)
+            if 'aria-labelledby' in tag:
+                fail(1, f'{loc}: results still has aria-labelledby (name must not follow #lh)')
+            want = f'aria-label="{L["results"]}"'
+            if want not in tag:
+                fail(1, f'{loc}: results aria-label missing or wrong (want {L["results"]!r} in {tag})')
 
     # AC1 footer
     ft = ft_nav(doc)
