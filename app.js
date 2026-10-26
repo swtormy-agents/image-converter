@@ -91,10 +91,19 @@ function thLoading(it){const d=el('div','th skeleton');d.setAttribute('aria-hidd
 // Megan 0d7ccf9 / L1: the summary stays as a persistent prefix (lhSum is only reset by a new conversion/clear).
 // Known failures are appended at summary even if some lazy (off-screen) previews are still untried; later
 // failures rewrite #lh as «<summary> · <noPreviewN>» (700 ms debounce; only rewrite when the text changes).
-let npvT=0,npvPend=false,lhSum='';function npvText(){const n=items.filter(x=>x.noPv).length;return n?tp('noPreviewN',n,'No preview for {n} file','No preview for {n} files'):'';}
+// WebKit race (QA 48d901d): a queued debounce could write an older count (or take the else-branch,
+// clear lhSum, and write a bare «No preview for {n}») after which later tile completions skipped
+// announceNoPv (`if(lhSum&&…)`). Always recompute from live items[] / all-done; ignore stale timers.
+let npvT=0,npvPend=false,lhSum='',npvSeq=0;
+function npvText(){const n=items.filter(x=>x.noPv).length;return n?tp('noPreviewN',n,'No preview for {n} file','No preview for {n} files'):'';}
 function npvPending(){return items.some(x=>!x.pvDone);}
-function announceNoPv(){clearTimeout(npvT);npvT=0;if(busy){npvPend=true;return;}npvT=setTimeout(()=>{npvT=0;if(busy){npvPend=true;return;}const m=npvText();if(!m)return;
-  const cur=status.textContent;if(lhSum&&cur.startsWith(lhSum)){const s2=lhSum+' \u00b7 '+m;if(cur!==s2)status.textContent=s2;}else{lhSum='';if(cur!==m)status.textContent=m;}},700);}
+function npvWant(){const m=npvText();return lhSum?(m?lhSum+' \u00b7 '+m:lhSum):m;}
+function writeNpv(){if(busy){npvPend=true;return;}const want=npvWant();if(want&&status.textContent!==want)status.textContent=want;}
+function announceNoPv(){
+  const seq=++npvSeq;clearTimeout(npvT);npvT=0;if(busy){npvPend=true;return;}
+  const run=()=>{if(seq!==npvSeq)return;npvT=0;if(busy){npvPend=true;return;}writeNpv();};
+  if(!npvPending()){run();return;}
+  npvT=setTimeout(run,700);}
 function thError(it){const np=t('noPreview','No preview'),d=el('div','th is-error');d.setAttribute('aria-hidden','true');d.title=np;d.append(icon(FILE_D),el('span','th-x',np));it.th.replaceWith(d);it.th=d;
   it.noPv=true;it.pvDone=true;announceNoPv();setRs(it,[...it.rs.childNodes].filter(n=>!n.classList||!n.classList.contains('npv')));}
 // Error status: no "No preview ·" prefix (the error already explains it); li.is-err lets the status take the full row width <600px.
@@ -133,7 +142,7 @@ async function pump(){if(thRun)return;thRun=true;
   while(thQ.length){const it=thQ.shift();if(!items.includes(it))continue;
     try{const r=await makeThumb(it);if(!items.includes(it))continue;
       const u=URL.createObjectURL(r.b),d=el('div','th'+(r.a?' th-alpha':'')),im=document.createElement('img');
-      im.alt='';im.width=96;im.height=96;im.decoding='async';im.src=u;d.appendChild(im);it.th.replaceWith(d);it.th=d;it.thUrl=u;it.pvDone=true;if(lhSum&&npvPend===false&&items.some(x=>x.noPv))announceNoPv();
+      im.alt='';im.width=96;im.height=96;im.decoding='async';im.src=u;d.appendChild(im);it.th.replaceWith(d);it.th=d;it.thUrl=u;it.pvDone=true;if(lhSum||items.some(x=>x.noPv))announceNoPv();
     }catch(e){if(items.includes(it))thError(it);}}
   thRun=false;}
 const io=window.IntersectionObserver?new IntersectionObserver(es=>{for(const x of es)if(x.isIntersecting){io.unobserve(x.target);const it=items.find(i=>i.li===x.target);if(it){thQ.push(it);pump();}}},{rootMargin:'300px 0px'}):null;
@@ -171,7 +180,7 @@ const drop=$('drop');
 ['dragleave','drop'].forEach(t=>drop.addEventListener(t,e=>{e.preventDefault();drop.classList.remove('over');}));
 drop.addEventListener('drop',e=>add(e.dataTransfer.files));
 btn.addEventListener('click',async()=>{
-  if(!items.length)return;busy=true;if(npvT){clearTimeout(npvT);npvT=0;npvPend=true;}lhSum='';btn.disabled=true;syncUI();const type=fmtSel.value,ext=OUT.find(o=>o[0]===type)[2],qual=Number(q.value);let ok=0;
+  if(!items.length)return;busy=true;clearTimeout(npvT);npvT=0;npvSeq++;npvPend=true;lhSum='';btn.disabled=true;syncUI();const type=fmtSel.value,ext=OUT.find(o=>o[0]===type)[2],qual=Number(q.value);let ok=0;
   for(let i=0;i<items.length;i++){const it=items[i],rs=it.rs;status.textContent=t('progress','Converting {i} of {n}…',{i:i+1,n:items.length});setRs(it,[el('span','muted',t('working','Converting…'))]);
     if(it.a){it.a.remove();it.a=null;}it.out=null;setPill(it);
     try{const b=await convert(it,type,qual);const name=it.file.name.replace(/\.[^.]+$/,'')+'.'+ext;it.out={name,blob:b};
@@ -180,7 +189,7 @@ btn.addEventListener('click',async()=>{
       const a=el('a','btn sec sm',t('dl','Download'));a.href=it.url;a.download=name;a.setAttribute('aria-label',t('dlName','Download {name}',{name}));it.li.insertBefore(a,it.rm);it.a=a;ok++;
     }catch(e){it.out=null;setRs(it,[el('span','err',e.friendly||t('readErr',"Couldn't read this file. Is it a supported image (HEIC, HEIF, WebP, AVIF, PNG, JPEG)?"))]);}
   }
-  busy=false;const sum=t('converted','{ok} of {n} converted',{ok,n:items.length}),pend=npvPending(),m=npvText();lhSum=sum;status.textContent=m?sum+' \u00b7 '+m:sum;if(npvPend&&pend)announceNoPv();npvPend=false;btn.disabled=true;syncUI();
+  busy=false;lhSum=t('converted','{ok} of {n} converted',{ok,n:items.length});writeNpv();if(npvPend&&npvPending())announceNoPv();npvPend=false;btn.disabled=true;syncUI();
 });
 zipBtn.addEventListener('click',async()=>{const fs=items.filter(i=>i.out).map(i=>({name:i.out.name,blob:i.out.blob}));const seen={};fs.forEach(f=>{let n=f.name,k=1;while(seen[n])n=f.name.replace(/(\.[^.]+)$/,'-'+(k++)+'$1');seen[n]=1;f.name=n;});
   const z=await makeZip(fs);const a=document.createElement('a');a.href=URL.createObjectURL(z);a.download='converted-images.zip';document.body.appendChild(a);a.click();a.remove();});

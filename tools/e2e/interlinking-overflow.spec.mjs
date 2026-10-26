@@ -42,6 +42,8 @@ for (const loc of LANGS) {
           expect(deco.line, `aria-current underline at rest on ${loc}${p}`).toContain('underline');
           const px = parseFloat(deco.thick);
           expect(Number.isFinite(px) && px >= 2, `aria-current thickness on ${loc}${p} (${deco.thick})`).toBe(true);
+          const off = parseFloat(deco.off);
+          expect(off, `aria-current text-underline-offset 3px on ${loc}${p} (${deco.off})`).toBe(3);
         }
         const ftLink = page.locator('nav.ft a:not([aria-current])').first();
         await ftLink.hover();

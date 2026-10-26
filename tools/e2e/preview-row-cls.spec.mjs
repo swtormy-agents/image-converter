@@ -385,3 +385,73 @@ for (const page_ of Object.keys(CONV)) {
     expect(await page.locator('#lh').textContent(), 'must not collapse to a bare no-preview count').not.toBe(npv);
   });
 }
+
+// QA 48d901d: a late / out-of-order tile must rewrite #lh from the live error count.
+// IntersectionObserver is held for late-bad-* rows so those decodes cannot start until
+// released; after the summary settles at 2 errors, release late-bad-1 then late-bad-0.
+function holdLateBadIO() {
+  return () => {
+    const Native = window.IntersectionObserver;
+    const held = [];
+    window.__releaseHeld = (re) => {
+      const rx = re ? new RegExp(re) : null;
+      const keep = [];
+      for (const x of held) {
+        if (!rx || rx.test(x.name)) x.observe();
+        else keep.push(x);
+      }
+      held.length = 0;
+      held.push(...keep);
+    };
+    window.IntersectionObserver = class extends Native {
+      constructor(cb, opts) {
+        super(cb, opts);
+        this._observe = Native.prototype.observe.bind(this);
+      }
+      observe(el) {
+        const name = (el.querySelector && el.querySelector('.fn') && el.querySelector('.fn').textContent) || '';
+        if (/late-bad-/.test(name)) {
+          held.push({ name, observe: () => this._observe(el) });
+          return;
+        }
+        return this._observe(el);
+      }
+    };
+  };
+}
+const OO_N = 6;
+const OO_OK = 2;
+const OO_NPV = 4;
+for (const page_ of Object.keys(CONV)) {
+  test(`#lh late out-of-order tiles match error count (${page_})`, async ({ page }) => {
+    test.setTimeout(120000);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.addInitScript(holdLateBadIO());
+    await page.goto(page_);
+    const sum = await fmtConverted(page, OO_OK, OO_N);
+    await page.setInputFiles('#files', [...CORE_AB, ...lateBroken(2)]);
+    await expect(page.locator('#list > li')).toHaveCount(OO_N);
+    await revealListHead(page);
+    await expect(page.locator('#list .th.is-error')).toHaveCount(2, { timeout: 15000 });
+    await expect(page.locator('#list .th.skeleton')).toHaveCount(2);
+    await page.click('#convert');
+    await expect(page.locator('#lh')).toContainText(sum, { timeout: 90000 });
+    const two = `${sum} \u00b7 ${await fmtNoPv(page, 2)}`;
+    await expect(page.locator('#lh')).toHaveText(two, { timeout: 10000 });
+    // Longer than the 700ms debounce: an early write of 2 must not lock out later updates.
+    await page.waitForTimeout(800);
+    await expect(page.locator('#lh')).toHaveText(two);
+    await page.evaluate(() => window.__releaseHeld('late-bad-1'));
+    await page.locator('#list > li').filter({ hasText: 'late-bad-1' }).scrollIntoViewIfNeeded();
+    await expect(page.locator('#list .th.is-error')).toHaveCount(3, { timeout: 15000 });
+    await expectLhMatchesKnownErrors(page, sum);
+    await page.evaluate(() => window.__releaseHeld('late-bad-0'));
+    await page.locator('#list > li').filter({ hasText: 'late-bad-0' }).scrollIntoViewIfNeeded();
+    await expect(page.locator('#list .th.is-error')).toHaveCount(OO_NPV, { timeout: 15000 });
+    const final = `${sum} \u00b7 ${await fmtNoPv(page, OO_NPV)}`;
+    await expect(page.locator('#lh')).toHaveText(final, { timeout: 10000 });
+    await expect(page.locator('#list .th.skeleton')).toHaveCount(0);
+    await page.waitForTimeout(800);
+    await expect(page.locator('#lh')).toHaveText(final);
+  });
+}
