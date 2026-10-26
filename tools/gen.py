@@ -95,7 +95,7 @@ def check_ru(T,path='ru'):
         txt=html.unescape(re.sub(r'<[^>]*>','',v)) if k.endswith('_html') else v
         assert ru_nbsp(txt)==txt, f'plain space after a short word in {path}.{k}'
 ICON='<svg viewBox="0 0 28 28" aria-hidden="true" class="size-7 shrink-0 text-primary" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="26" height="26" rx="7"/><path d="M8 18l4-5 3 3 2-2 3 4"/></svg>'
-GLOBE='<svg class="ico-globe size-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'
+GLOBE='<svg class="ico-globe size-5 shrink-0 hidden min-[360px]:block" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'
 CHEV_S='<svg class="ico-chev hidden sm:block size-3.5 shrink-0 opacity-70" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>'
 CHECK='<svg class="ms-auto size-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>'
 LANG_CODE={'en':'EN','ru':'RU','zh':''}  # right-hand codes of the inactive items; none for 中文 (the name is already the code; the button shows i18n lang_code: EN/RU/中文)
@@ -114,7 +114,7 @@ def head(T,lang,page,title,desc,out=None):
                 +(' aria-current="page"' if cur else '')+f'>{e(LANG_NAME[l])}{" "+tail if tail else ""}</a></li>')
     radios=''.join(f'<input class="join-item btn btn-ghost flex-1 min-h-11 theme-opt" type="radio" name="theme" value="{v}" aria-label="{e(T[v])}" title="{e(T[v])}"'+(' checked' if v=='system' else '')+'>' for v in ('system','light','dark'))
     aria=''.join(f' data-l-{k}="{e(T["settings_aria_"+k])}"' for k in ('system','light','dark','mobile'))
-    nav=(f'<details class="settings dropdown dropdown-end"><summary class="btn btn-outline border-base-300 min-h-11 min-w-11 px-2.5 gap-1.5 font-medium whitespace-nowrap" aria-label="{e(T["settings_aria_system"])}" aria-haspopup="true" aria-expanded="false"{aria}>'
+    nav=(f'<details class="settings dropdown dropdown-end"><summary class="btn btn-outline border-base-300 min-h-11 min-w-11 px-2 gap-1 min-[360px]:px-2.5 min-[360px]:gap-1.5 font-medium whitespace-nowrap" aria-label="{e(T["settings_aria_system"])}" aria-haspopup="true" aria-expanded="false"{aria}>'
          f'{GLOBE}<span lang="{HREFLANG[lang]}">{e(T["lang_code"])}</span><span class="sep hidden sm:block w-px h-6 bg-base-300 mx-1" aria-hidden="true"></span><span class="ico-theme hidden sm:block size-5" aria-hidden="true"></span>{CHEV_S}</summary>'
          '<div class="dropdown-content z-20 mt-2 w-56 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">'
          f'<nav aria-labelledby="lang-h"><p id="lang-h" class="px-3 pt-2 pb-1 text-xs font-medium text-base-content/80">{e(T["lang_nav"])}</p><ul class="menu w-full p-0">'+''.join(li(l) for l in LANGS)+'</ul></nav>'
