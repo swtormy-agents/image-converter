@@ -96,5 +96,6 @@
  "xpdf_jpg": "Convert JPG to PDF",
  "xpdf_heic": "Turn photos into a PDF",
  "crumbs_aria": "Breadcrumb",
- "about_aria": "About this site"
+ "about_aria": "About this site",
+ "results_aria": "Your images"
 }

@@ -97,6 +97,7 @@
  "xpdf_heic": "将照片转换为 PDF",
  "crumbs_aria": "面包屑导航",
  "about_aria": "关于本站",
+ "results_aria": "您的图片",
  "pair_meta": {
   "heic-to-jpg.html": {
    "title": "HEIC 转 JPG 转换器｜在浏览器中本地转换，不上传到服务器",

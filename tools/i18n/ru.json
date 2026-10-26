@@ -107,5 +107,6 @@
  "xpdf_jpg": "Преобразовать JPG в PDF",
  "xpdf_heic": "Собрать фото в PDF",
  "crumbs_aria": "Навигационная цепочка",
- "about_aria": "О сайте"
+ "about_aria": "О сайте",
+ "results_aria": "Ваши изображения"
 }
