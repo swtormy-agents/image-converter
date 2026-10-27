@@ -149,11 +149,6 @@ h1 { overflow-wrap: break-word; hyphens: auto; }
 .crumbs [aria-current] { overflow-wrap: anywhere; }
 .crumbs li:not(:last-child)::after { content: "/"; content: "/" / ""; padding: 0 6px; }
 .flinks a { overflow-wrap: anywhere; }
-/* <360px: tighter navbar/brand flex gaps free horizontal room (zh 中文 + DejaVu is the worst case). */
-@media (max-width: 359px) {
-  header .navbar { gap: 0.5rem; }
-  header .brand { gap: 0.375rem; }
-}
 /* 280px: gap-3 between brand and language switcher needs a bit of room (zh 中文 is the widest). */
 @media (max-width: 319px) {
   header .navbar { padding-inline: 0.5rem; }
