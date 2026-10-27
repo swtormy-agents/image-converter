@@ -231,7 +231,49 @@ class RangeTests(unittest.TestCase):
             run_git(tmp, "commit", "-m", "touch sitemap")
             c4 = run_git(tmp, "rev-parse", "HEAD")
             urls = indexnow.collect_urls(tmp, None, shas["c3"], c4)
-            self.assertIn("https://noclaudkit.com/image-converter/a/", urls)
+            self.assertEqual(
+                urls,
+                ["https://noclaudkit.com/image-converter/a/"],
+            )
+
+    def test_default_range_is_parent_to_head(self):
+        with tempfile.TemporaryDirectory() as raw:
+            tmp = Path(raw)
+            shas = make_multicommit_repo(tmp)
+            self.assertEqual(
+                indexnow.collect_urls(tmp, None, None, None),
+                ["https://noclaudkit.com/image-converter/b/"],
+            )
+
+    def test_cli_default_range_without_after(self):
+        with tempfile.TemporaryDirectory() as raw:
+            tmp = Path(raw)
+            make_multicommit_repo(tmp)
+            stdout = io.StringIO()
+            with mock.patch.object(sys, "stdout", stdout):
+                code = indexnow.main(["--dry-run", "--repo-root", str(tmp)])
+            self.assertEqual(code, 0)
+            payload = json.loads(stdout.getvalue())
+            self.assertEqual(
+                payload["urlList"],
+                ["https://noclaudkit.com/image-converter/b/"],
+            )
+
+
+class SubmitTests(unittest.TestCase):
+    def test_empty_url_list_skips_http_post(self):
+        with tempfile.TemporaryDirectory() as raw:
+            tmp = write_repo(Path(raw))
+            with mock.patch("urllib.request.urlopen") as urlopen_mock:
+                stderr = io.StringIO()
+                with mock.patch.object(sys, "stderr", stderr):
+                    code = indexnow.main(
+                        ["--submit", "--repo-root", str(tmp), "--files"]
+                    )
+            self.assertEqual(code, 0)
+            urlopen_mock.assert_not_called()
+            self.assertIn("status=skipped", stderr.getvalue())
+            self.assertIn("url_count=0", stderr.getvalue())
 
 
 class WorkflowFileTests(unittest.TestCase):
@@ -244,6 +286,10 @@ class WorkflowFileTests(unittest.TestCase):
         self.assertIn("workflow_dispatch:", self.text)
         self.assertIn("INDEXNOW_BEFORE: ${{ inputs.after }}", self.text)
         self.assertIn("INDEXNOW_ALL: ${{ inputs.all }}", self.text)
+        self.assertIn(
+            "INDEXNOW_AFTER: ${{ github.event_name == 'workflow_dispatch' && github.sha",
+            self.text,
+        )
         self.assertIn("persist-credentials: false", self.text)
         self.assertIn("contents: read", self.text)
         self.assertIn(

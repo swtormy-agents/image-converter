@@ -402,10 +402,13 @@ def collect_urls(
         resolved_before = validate_explicit_before(repo_root, before)
     else:
         if not after:
-            raise IndexNowError("either --files, --after, or --all is required")
-        resolved_before = resolve_before_sha(repo_root, after, None)
+            after = rev_parse(repo_root, "HEAD")
+            resolved_before = first_parent(repo_root, after)
+        else:
+            resolved_before = resolve_before_sha(repo_root, after, None)
     changed = changed_files_between(repo_root, resolved_before, after)
-    urls = set(map_changed_files(changed, sitemap_locs, alternates))
+    file_changes = [path for path in changed if path != "sitemap.xml"]
+    urls = set(map_changed_files(file_changes, sitemap_locs, alternates))
     urls |= changed_sitemap_locs(repo_root, resolved_before, after, sitemap_locs)
     urls = expand_alternates(urls, sitemap_locs, alternates)
     return sorted(urls)[:URL_LIST_CAP]
