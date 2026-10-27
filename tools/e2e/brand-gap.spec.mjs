@@ -1,6 +1,7 @@
 // Brand text → language button border gap (zh 中文 + DejaVu is the tightest case).
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -14,6 +15,8 @@ const LOCALES = [
 ];
 const PAGES = ['index.html', 'heic-to-jpg.html'];
 const WIDTHS = [280, 320, 359];
+
+const FONT_PROBE_TEXT = 'Local Image Converter 中文';
 
 const LATE_TILE_FILES = [
   { name: 'ok1.png', mimeType: 'image/png', buffer: readFileSync(join(FIXTURES, 'ok1.png')) },
@@ -54,13 +57,33 @@ async function applyDejaVu(page) {
   });
 }
 
+/** True when canvas measureText differs for family vs plain monospace (DejaVu is present). */
+async function fontFamilyDiffersFromMonospace(page, family) {
+  return page.evaluate(
+    async ({ text, family: fam }) => {
+      const withFamily = `16px "${fam}", monospace`;
+      const monoOnly = '16px monospace';
+      await document.fonts.load(withFamily);
+      await document.fonts.load(monoOnly);
+      await document.fonts.ready;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const width = (font) => {
+        ctx.font = font;
+        return ctx.measureText(text).width;
+      };
+      return Math.abs(width(withFamily) - width(monoOnly)) > 0.5;
+    },
+    { text: FONT_PROBE_TEXT, family },
+  );
+}
+
 async function assertDejaVuLoaded(page) {
-  const loaded = await page.evaluate(async () => {
-    await document.fonts.load('16px "DejaVu Sans"');
-    await document.fonts.ready;
-    return document.fonts.check('16px "DejaVu Sans"');
-  });
-  expect(loaded, 'DejaVu Sans must be loaded before measuring (document.fonts.check)').toBe(true);
+  const differs = await fontFamilyDiffersFromMonospace(page, 'DejaVu Sans');
+  expect(
+    differs,
+    'DejaVu Sans must change measureText width vs monospace before gap measurement',
+  ).toBe(true);
 }
 
 for (const { path, lang } of paths()) {
@@ -76,6 +99,17 @@ for (const { path, lang } of paths()) {
 
 test.describe('DejaVu Sans', () => {
   test.use({ bypassCSP: true });
+
+  test.beforeAll(() => {
+    const fonts = execSync('fc-list', { encoding: 'utf8' });
+    expect(fonts, 'host fc-list should list DejaVu Sans for e2e').toMatch(/DejaVu Sans/i);
+  });
+
+  test('font width probe rejects a missing family', async ({ page }) => {
+    await page.goto('index.html');
+    const differs = await fontFamilyDiffersFromMonospace(page, 'NoSuchFontXYZ123');
+    expect(differs, 'unknown font must not differ from monospace-only probe').toBe(false);
+  });
 
   for (const { path, lang } of paths()) {
     for (const w of WIDTHS) {
@@ -95,7 +129,9 @@ test.describe('header gap stable after fonts and late tiles', () => {
   test.use({ bypassCSP: true });
 
   const lateCases = [
+    { path: 'zh/heic-to-jpg.html', lang: 'zh', w: 280 },
     { path: 'zh/heic-to-jpg.html', lang: 'zh', w: 359 },
+    { path: 'zh/index.html', lang: 'zh', w: 280 },
     { path: 'zh/index.html', lang: 'zh', w: 320 },
   ];
 
