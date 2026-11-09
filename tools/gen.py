@@ -3,8 +3,11 @@
 Translations live in tools/i18n/<lang>.json (keys ending in _html are authored markup, everything else is
 plain text and HTML-escaped here) and tools/i18n/privacy.<lang>.html."""
 # NOTE: only writes the pages listed below; never touches google*.html (Search Console verification file, keep, not in sitemap).
-import re,os,html,json,subprocess,hashlib
-os.chdir(os.path.join(os.path.dirname(__file__),'..'))
+import re,os,html,json,subprocess,hashlib,sys
+_SCRIPT_DIR=os.path.dirname(os.path.abspath(__file__))
+if _SCRIPT_DIR not in sys.path: sys.path.insert(0,_SCRIPT_DIR)
+import lastmod as _lastmod
+os.chdir(os.path.join(_SCRIPT_DIR,'..'))
 BASE='https://noclaudkit.com/image-converter/'
 SITE='https://noclaudkit.com'
 CSP="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
@@ -359,37 +362,9 @@ for lang,p in pages:
         assert 'class="editorial"' not in s, f'{loc}: editorial block without seo/faq data'
         assert 'class="faq mt-12"' not in s, f'{loc}: FAQ block without faq data'
         assert '"@type": "FAQPage"' not in s and '"@type":"FAQPage"' not in s, f'{loc}: FAQPage JSON-LD without faq data'
-_GIT_ENV={**os.environ,'GIT_TERMINAL_PROMPT':'0'}
-def ensure_git_history():
-    shallow=subprocess.run(['git','rev-parse','--is-shallow-repository'],capture_output=True,text=True,check=True,env=_GIT_ENV).stdout.strip()
-    assert shallow=='false', 'refusing sitemap lastmod: git clone is shallow (fetch-depth: 0 or git fetch --unshallow required)'
-def git_last_date(paths,*,grep=None):
-    """Latest commit date touching paths (full history, merges included; grep = per-slug -G pickaxe)."""
-    args=['git','log','-1','--format=%cs']
-    if grep: args+=['-G',grep]
-    args+=['--',*paths]
-    r=subprocess.run(args,capture_output=True,text=True,env=_GIT_ENV,timeout=120)
-    if r.returncode not in(0,128): raise subprocess.CalledProcessError(r.returncode,args,r.stdout,r.stderr)
-    return r.stdout.strip()
-def sources(l,p):
-    """Content inputs for <lastmod>: shared lang bundle plus pair-specific seo/faq keys when applicable."""
-    slug=p.replace('.html','') if p.endswith('.html') and p not in('index.html',) else None
-    picks=[([f'tools/i18n/{l}.json'],None)]
-    if slug and p not in DOC_PAGES:
-        needle=f'"{slug}"'
-        picks+=([([f'tools/i18n/seo.json'],needle),([f'tools/i18n/faq.json'],needle)])
-    return picks
-def lastmod(l,p):
-    """Max commit date across page sources (reachable via merges, not --no-merges)."""
-    dates=[]
-    for paths,grep in sources(l,p):
-        d=git_last_date(paths,grep=grep)
-        if d: dates.append(d)
-    assert dates, f'no git date for {l}/{p}'
-    d=max(dates)
-    assert re.fullmatch(r'\d{4}-\d{2}-\d{2}',d), f'bad git date for {l}/{p}: {d!r}'
-    return d
-ensure_git_history()
+_lastmod.ensure_git_history()
+_lastmod.init_slug_date_tables(LANGS)
+def lastmod(l,p): return _lastmod.lastmod(l,p,LANGS,DOC_PAGES)
 SITEMAP_PAGES=[p for p in PAGES if p not in DOC_PAGES]
 sm_pages=[(l,p) for l,p in pages if p in SITEMAP_PAGES]
 open('sitemap.xml','w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
