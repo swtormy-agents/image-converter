@@ -343,7 +343,11 @@ def sources(l,p):
     if p=='licenses.html': f.append('licenses.html')  # en body is embedded in ru/zh licences too
     return f
 def lastmod(l,p):
-    d=subprocess.run(['git','log','-1','--format=%cs','--',*sources(l,p)],capture_output=True,text=True,check=True).stdout.strip()
+    """Last content edit date among page sources. --no-merges avoids a merge bubble on main changing every lastmod."""
+    args=['git','log','-1','--no-merges','--format=%cs','--',*sources(l,p)]
+    d=subprocess.run(args,capture_output=True,text=True,check=True).stdout.strip()
+    if not d:
+        d=subprocess.run(['git','log','-1','--format=%cs','--',*sources(l,p)],capture_output=True,text=True,check=True).stdout.strip()
     assert re.fullmatch(r'\d{4}-\d{2}-\d{2}',d), f'no git date for {l}/{p}'
     return d
 SITEMAP_PAGES=[p for p in PAGES if p not in DOC_PAGES]
