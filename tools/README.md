@@ -21,6 +21,8 @@ npm --prefix tools run check:css    # builds twice, compares sha256, checks buil
 ## Pages
 
 `python3 tools/gen.py` regenerates the en/ru/zh pages from `tools/i18n/`.
+
+Per conversion pair, optional unique copy lives in `tools/i18n/seo.json` (`editorial_html`, optional `title`/`desc`) and `tools/i18n/faq.json` (array of `{q,a}`). Empty or missing entries keep the page unchanged. Requires full git history for per-page `sitemap.xml` `<lastmod>` (`git fetch --unshallow` or `fetch-depth: 0` in CI).
 A second run must leave a clean `git status` (spec AC8).
 
 ## Interlinking checker (spec v3 §5 AC1–AC9 for this repo)

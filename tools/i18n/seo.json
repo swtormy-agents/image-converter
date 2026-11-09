@@ -1,0 +1,11 @@
+{
+ "en": {},
+ "ru": {},
+ "zh": {
+  "heic-to-jpg": {
+   "title": "HEIC 转 JPG 转换器｜在浏览器中本地转换，不上传到服务器",
+   "desc": "在浏览器中将 HEIC 转换为 JPG，文件不会上传到服务器，也不会离开您的设备。"
+  }
+ },
+ "_doc": "Per conversion pair (slug without .html, e.g. heic-to-jpg), optional fields: title (page <title> and OG), desc (meta description), editorial_html (trusted HTML fragment, usually <p> paragraphs). Empty lang objects or missing slugs: page uses tools/i18n/<lang>.json pair_title/pair_desc only."
+}

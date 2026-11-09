@@ -1,0 +1,6 @@
+{
+ "en": {},
+ "ru": {},
+ "zh": {},
+ "_doc": "Per conversion pair slug (e.g. heic-to-jpg), value is an array of { \"q\": \"question\", \"a\": \"answer\" }. Plain text in answers; optional markdown links [label](https://noclaudkit.com/...) or [/relative/path] rendered as <a> in HTML and plain label in FAQPage JSON-LD. Missing slug or empty array: no FAQ section and no FAQPage JSON-LD."
+}
