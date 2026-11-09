@@ -23,10 +23,10 @@
  "f_conv": "Image converter",
  "f_priv": "Privacy",
  "f_lic": "Licences",
- "index_title": "Local Image Converter – HEIC, WebP, AVIF to JPG/PNG in your browser",
+ "index_title": "Local Image Converter – HEIC, WebP, AVIF to JPG/PNG",
  "index_desc": "Convert HEIC, WebP, AVIF, PNG and JPEG to JPG or PNG right in your browser, plus WebP where supported. Files never leave your device. Free.",
  "index_h1": "Convert images in your browser",
- "pair_title": "{A} to {B} converter – free, in your browser, no upload | Local Image Converter",
+ "pair_title": "{A} to {B} Converter – Free, Private, In-Browser",
  "pair_desc": "Convert {A} images to {B} in your browser. Batch conversion, quality slider, zip download. Files stay on your device; no upload, no ads, no cookies.",
  "pair_h1": "Convert {A} to {B} in your browser",
  "notes": {
@@ -97,5 +97,6 @@
  "xpdf_heic": "Turn photos into a PDF",
  "crumbs_aria": "Breadcrumb",
  "about_aria": "About this site",
- "results_aria": "Your images"
+ "results_aria": "Your images",
+ "faq_h": "Frequently asked questions"
 }

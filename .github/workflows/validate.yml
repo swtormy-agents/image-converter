@@ -1,0 +1,36 @@
+name: Validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tools/package-lock.json
+      - name: Install Node deps
+        working-directory: tools
+        run: npm ci
+      - name: Regenerate pages
+        run: python3 tools/gen.py
+      - name: Assert generated output committed
+        run: git diff --exit-code
+      - name: Interlinking and CSP checks
+        working-directory: tools
+        run: npm run check:interlinking
+      - name: IndexNow unit tests
+        run: python3 -m unittest tools/test_indexnow.py tools/test_gen.py

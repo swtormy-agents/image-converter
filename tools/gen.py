@@ -21,6 +21,33 @@ def og_img(lang):  # absolute, same BASE as canonical; ?v= = sha256[:8] of the P
     with open(f'assets/og/og-{lang}.png','rb') as f: v=hashlib.sha256(f.read()).hexdigest()[:8]
     return BASE+f'assets/og/og-{lang}.png?v={v}'
 I18N={l:json.load(open(f'tools/i18n/{l}.json',encoding='utf-8')) for l in LANGS}
+SEO=json.load(open('tools/i18n/seo.json',encoding='utf-8'))
+FAQ=json.load(open('tools/i18n/faq.json',encoding='utf-8'))
+# Rendered output must never contain placeholder / lorem markers (content pipeline guard).
+PLACEHOLDER_RE=re.compile(
+    r'(?:lorem\s+ipsum|'
+    r'\b(?:placeholder|lorem|tbd|fixme|xxx)\b|'
+    r'TODO:\s*\S|'
+    r'\[\[(?:fill|placeholder|tbd|xxx|lorem)[^\]]*\]\]|'
+    r'\{\{(?:fill|placeholder|tbd|lorem)[^}]*\}\})',
+    re.I)
+def assert_no_placeholders(text,where):
+    m=PLACEHOLDER_RE.search(text or '')
+    assert not m, f'placeholder marker in {where}: {m.group(0)!r}'
+def validate_seo_faq_sources():
+    for lang in LANGS:
+        for slug,entry in (SEO.get(lang) or {}).items():
+            if not isinstance(slug,str) or slug.startswith('_') or not isinstance(entry,dict): continue
+            for k,v in entry.items():
+                if k.startswith('_') or not isinstance(v,str) or not v.strip(): continue
+                assert_no_placeholders(v,f'tools/i18n/seo.json {lang}/{slug}/{k}')
+        for slug,items in (FAQ.get(lang) or {}).items():
+            if not isinstance(slug,str) or slug.startswith('_'): continue
+            assert isinstance(items,list), f'tools/i18n/faq.json {lang}/{slug} must be an array'
+            for i,x in enumerate(items):
+                assert isinstance(x,dict) and (x.get('q') or '').strip() and (x.get('a') or '').strip(), f'tools/i18n/faq.json {lang}/{slug}[{i}]: non-empty q and a required'
+                assert_no_placeholders(x['q'],f'tools/i18n/faq.json {lang}/{slug}[{i}].q')
+                assert_no_placeholders(x['a'],f'tools/i18n/faq.json {lang}/{slug}[{i}].a')
 for _l in LANGS: assert '\u00a0' not in I18N[_l]['tagline'] and '&nbsp;' not in I18N[_l]['tagline'], f'U+00A0 in tagline {_l}'
 PAIRS=[('heic','jpg','HEIC','JPG','image/jpeg'),('heic','png','HEIC','PNG','image/png'),('webp','png','WebP','PNG','image/png'),('webp','jpg','WebP','JPG','image/jpeg'),
 ('avif','jpg','AVIF','JPG','image/jpeg'),('avif','png','AVIF','PNG','image/png'),('png','webp','PNG','WebP','image/webp'),('jpg','webp','JPG','WebP','image/webp')]
@@ -38,6 +65,32 @@ def jsonld(lang,page,title,desc):
     d={'@context':'https://schema.org','@type':'WebApplication','name':title,'description':desc,'url':url(lang,page),'inLanguage':HREFLANG[lang],
        'applicationCategory':'MultimediaApplication','operatingSystem':'Any','isAccessibleForFree':True,'offers':{'@type':'Offer','price':'0','priceCurrency':'USD'}}
     return f'<script type="application/ld+json">{ld_dumps(d)}</script>\n'
+FAQ_LINK=re.compile(r'\[([^\]]+)\]\(((?:https://noclaudkit\.com)?/[^)\s]*)\)')
+def faq_plain(a): return FAQ_LINK.sub(lambda m:m.group(1),a)
+def faq_answer_html(a):
+    out,pos='',0
+    for m in FAQ_LINK.finditer(a):
+        out+=e(a[pos:m.start()])+f'<a class="link link-primary" href="{e(m.group(2))}">{e(m.group(1))}</a>'; pos=m.end()
+    return out+e(a[pos:])
+def faq_jsonld(items):
+    d={'@context':'https://schema.org','@type':'FAQPage','mainEntity':[{'@type':'Question','name':x['q'],'acceptedAnswer':{'@type':'Answer','text':faq_plain(x['a'])}} for x in items]}
+    return f'<script type="application/ld+json">{ld_dumps(d)}</script>\n'
+def faq_html(T,items):
+    return (f'<section class="faq mt-12" aria-labelledby="faq-h"><h2 id="faq-h" class="text-2xl font-semibold">{e(T["faq_h"])}</h2><div class="mt-4 space-y-2">'
+            +''.join(f'<details class="collapse collapse-arrow bg-base-200"><summary class="collapse-title font-semibold min-h-11">{e(x["q"])}</summary><div class="collapse-content"><p>{faq_answer_html(x["a"])}</p></div></details>' for x in items)+'</div></section>\n')
+def editorial_html(lang,slug):
+    block=(SEO.get(lang) or {}).get(slug,{}).get('editorial_html','')
+    if not isinstance(block,str) or not block.strip(): return ''
+    assert '<script' not in block.lower(), f'script in editorial {lang}/{slug}'
+    return f'<section class="editorial mt-12 text-sm sm:text-base space-y-3">{block}</section>\n'
+def pair_faq(lang,slug): return list((FAQ.get(lang) or {}).get(slug) or [])
+def pair_has_unique(lang,slug):
+    ed=((SEO.get(lang) or {}).get(slug) or {}).get('editorial_html','')
+    return bool(isinstance(ed,str) and ed.strip()) or bool(pair_faq(lang,slug))
+def pair_seo_meta(lang,slug,T,A,B):
+    """Merge tools/i18n pair_meta with tools/i18n/seo.json (seo wins on title/desc)."""
+    pm={**(T.get('pair_meta') or {}).get(f'{slug}.html',{}),**{k:v for k,v in (SEO.get(lang) or {}).get(slug,{}).items() if k in ('title','desc')}}
+    return pm.get('title',T['pair_title'].format(A=A,B=B)),pm.get('desc',T['pair_desc'].format(A=A,B=B))
 def home_path(l): return '/' if l=='en' else f'/{l}/'
 def home_abs(l): return SITE+home_path(l)
 def conv_path(l): return '/image-converter/' if l=='en' else f'/image-converter/{l}/'
@@ -100,9 +153,13 @@ CHEV_S='<svg class="ico-chev hidden sm:block size-3.5 shrink-0 opacity-70" viewB
 CHECK='<svg class="ms-auto size-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>'
 LANG_CODE={'en':'EN','ru':'RU','zh':''}  # right-hand codes of the inactive items; none for 中文 (the name is already the code; the button shows i18n lang_code: EN/RU/中文)
 X_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>'
-def head(T,lang,page,title,desc,out=None):
+def head(T,lang,page,title,desc,out=None,faqs=None):
     P='' if lang=='en' else '../'
-    ld=(jsonld(lang,page,title,desc) if page in LD_PAGES else '')+crumbs_ld(T,lang,page)
+    ld=''
+    if page in LD_PAGES:
+        ld=jsonld(lang,page,title,desc)
+        if faqs: ld+=faq_jsonld(faqs)
+    ld+=crumbs_ld(T,lang,page)
     alts=''.join(f'<link rel="alternate" hreflang="{HREFLANG[l]}" href="{url(l,page)}">' for l in LANGS)+f'<link rel="alternate" hreflang="x-default" href="{url("en",page)}">'
     ROOT=re.sub(r'^https?://[^/]+','',BASE)  # '/image-converter/': language links (inline list and dropdown) are root-relative plain <a href>, no JS
     # Selectors v2, variant B «Одно меню» (spec /workspace/design/selectors-v2/spec.md, owner-approved 2026-10-15):
@@ -201,10 +258,12 @@ def render(lang,T):
     out['index.html']=(head(T,lang,'index.html',T['index_title'],T['index_desc'])
      +hero(T['index_h1'],T['index_lead'],T)+tool(T,P)+limits(T)+more(T,T['index_lead'])+pairlinks(T)+xpdf(T,lang,'index.html')+'\n'+foot(T,lang,'index.html'))
     for a,b,A,B,mime in PAIRS:
-        p=f'{a}-to-{b}.html'; lead=T['pair_lead'].format(A=A,B=B); dec=T['notes'][a] if a in('heic','avif') else ''  # decoder/browser-support note (Limitations + mobile «Подробнее»)
-        pm=T.get('pair_meta',{}).get(p,{})  # approved per-page overrides
-        out[p]=(head(T,lang,p,pm.get('title',T['pair_title'].format(A=A,B=B)),pm.get('desc',T['pair_desc'].format(A=A,B=B)),mime)
-         +hero(T['pair_h1'].format(A=A,B=B),lead,T,T['outn'][b])+tool(T,P,a=='heic')+limits(T,dec)+more(T,lead,T['outn'][b],dec,a=='heic')+pairlinks(T,p)+xpdf(T,lang,p)+'\n'+foot(T,lang,p))
+        slug=f'{a}-to-{b}'; p=f'{slug}.html'; lead=T['pair_lead'].format(A=A,B=B); dec=T['notes'][a] if a in('heic','avif') else ''
+        title,desc=pair_seo_meta(lang,slug,T,A,B)
+        faqs=pair_faq(lang,slug)
+        out[p]=(head(T,lang,p,title,desc,mime,faqs=faqs or None)
+         +hero(T['pair_h1'].format(A=A,B=B),lead,T,T['outn'][b])+tool(T,P,a=='heic')+limits(T,dec)+more(T,lead,T['outn'][b],dec,a=='heic')
+         +editorial_html(lang,slug)+(faq_html(T,faqs) if faqs else '')+pairlinks(T,p)+xpdf(T,lang,p)+'\n'+foot(T,lang,p))
     if lang=='en': pb,lb=EN_BODY['privacy.html'],EN_BODY['licenses.html']
     else:
         pb='<p class="note prevails">'+T['prevails_html']+'</p>\n'+open(f'tools/i18n/privacy.{lang}.html',encoding='utf-8').read()
@@ -234,8 +293,14 @@ def selftest():
                     assert bad in it['name'], f'JSON-LD crumb name mismatch in {p}'
             else:
                 assert data['name'].endswith(bad), f'JSON-LD name mismatch in {p}'
+validate_seo_faq_sources()
 selftest()
 check_ru(I18N["ru"])
+assert len(I18N['en']['index_title'])<=60, f'en index_title too long: {len(I18N["en"]["index_title"])}'
+for a,b,A,B,_ in PAIRS:
+    slug=f'{a}-to-{b}'
+    t,_=pair_seo_meta('en',slug,I18N['en'],A,B)
+    assert len(t)<=60, f'en title too long for {slug}: {len(t)} ({t})'
 _pv=re.sub(r'<code>.*?</code>|<[^>]+>',' ',open('tools/i18n/privacy.ru.html',encoding='utf-8').read(),flags=re.S)  # visible text only
 assert '&nbsp;' not in _pv and ru_nbsp(_pv)==_pv and ' —' not in _pv, 'privacy.ru.html: plain space after a short word or before an em dash'
 
@@ -250,23 +315,44 @@ def plain_meta(s):
     for m in re.finditer(r'<[^>]*>|<title>.*?</title>|<script type="application/ld\+json">.*?</script>',s,re.S): assert NB not in m.group(0), 'U+00A0 in markup/meta'
     return s
 pages=[]
+generated={}
 for lang in LANGS:
     if lang!='en': os.makedirs(lang,exist_ok=True)
     for p,s in render(lang,I18N[lang]).items():
         s=plain_meta(s)
-        open(lp(lang)+p,'w',encoding='utf-8').write(s); pages.append((lang,p))
+        loc=lp(lang)+p
+        generated[loc]=s
+        open(loc,'w',encoding='utf-8').write(s); pages.append((lang,p))
+for loc,s in generated.items():
+    visible=re.sub(r'<script[^>]*>.*?</script>','',s,flags=re.I|re.S)
+    assert_no_placeholders(visible,loc)
+for lang,p in pages:
+    if p in DOC_PAGES or p=='index.html': continue
+    slug=p.replace('.html','')
+    loc=lp(lang)+p
+    s=generated[loc]
+    if not pair_has_unique(lang,slug):
+        assert 'class="editorial"' not in s, f'{loc}: editorial block without seo/faq data'
+        assert 'class="faq mt-12"' not in s, f'{loc}: FAQ block without faq data'
+        assert '"@type": "FAQPage"' not in s and '"@type":"FAQPage"' not in s, f'{loc}: FAQPage JSON-LD without faq data'
 def sources(l,p):
     """Content files whose last commit date becomes the page's <lastmod> (never the build date).
     tools/gen.py is deliberately not a source: template/generator edits must not bump every page's lastmod."""
-    f=[f'tools/i18n/{l}.json']
+    f=[f'tools/i18n/{l}.json','tools/i18n/seo.json','tools/i18n/faq.json']
     if p=='privacy.html': f.append('privacy.html' if l=='en' else f'tools/i18n/privacy.{l}.html')
     if p=='licenses.html': f.append('licenses.html')  # en body is embedded in ru/zh licences too
     return f
 def lastmod(l,p):
-    d=subprocess.run(['git','log','-1','--format=%cs','--',*sources(l,p)],capture_output=True,text=True,check=True).stdout.strip()
+    """Last content edit date among page sources. --no-merges avoids a merge bubble on main changing every lastmod."""
+    args=['git','log','-1','--no-merges','--format=%cs','--',*sources(l,p)]
+    d=subprocess.run(args,capture_output=True,text=True,check=True).stdout.strip()
+    if not d:
+        d=subprocess.run(['git','log','-1','--format=%cs','--',*sources(l,p)],capture_output=True,text=True,check=True).stdout.strip()
     assert re.fullmatch(r'\d{4}-\d{2}-\d{2}',d), f'no git date for {l}/{p}'
     return d
+SITEMAP_PAGES=[p for p in PAGES if p not in DOC_PAGES]
+sm_pages=[(l,p) for l,p in pages if p in SITEMAP_PAGES]
 open('sitemap.xml','w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
- +''.join(f'<url><loc>{url(l,p)}</loc><lastmod>{lastmod(l,p)}</lastmod>'+''.join(f'<xhtml:link rel="alternate" hreflang="{HREFLANG[x]}" href="{url(x,p)}"/>' for x in LANGS)+f'<xhtml:link rel="alternate" hreflang="x-default" href="{url("en",p)}"/></url>\n' for l,p in pages)+'</urlset>\n')
+ +''.join(f'<url><loc>{url(l,p)}</loc><lastmod>{lastmod(l,p)}</lastmod>'+''.join(f'<xhtml:link rel="alternate" hreflang="{HREFLANG[x]}" href="{url(x,p)}"/>' for x in LANGS)+f'<xhtml:link rel="alternate" hreflang="x-default" href="{url("en",p)}"/></url>\n' for l,p in sm_pages)+'</urlset>\n')
 open('robots.txt','w').write(f'User-agent: *\nAllow: /\nSitemap: {BASE}sitemap.xml\n')
-print(len(pages),'pages')
+print(len(pages),'pages,',len(sm_pages),'sitemap URLs')
