@@ -29,6 +29,9 @@ jobs:
         run: python3 tools/gen.py
       - name: Assert generated output committed
         run: git diff --exit-code
+      - name: CSS build is committed
+        working-directory: tools
+        run: npm run check:css
       - name: Interlinking and CSP checks
         working-directory: tools
         run: npm run check:interlinking

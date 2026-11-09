@@ -274,6 +274,7 @@ def render(lang,T):
 
 def selftest():
     """Escaping check: inject a markup test string into every plain-text field; it must never appear unescaped."""
+    global SEO, FAQ
     bad='<script>alert(1)</script>'
     T=json.loads(json.dumps(I18N['ru']))
     for k,v in T.items():
@@ -281,18 +282,39 @@ def selftest():
         if isinstance(v,str): T[k]=v+bad
         elif k in('notes','outn'): T[k]={kk:vv+bad for kk,vv in v.items()}
         elif k=='js': T[k]={kk:vv+bad for kk,vv in v.items()}
-    for p,s in render('ru',T).items():
-        assert bad not in s and '<script>alert' not in s, f'unescaped test string in {p}'
-        assert '&lt;script&gt;alert(1)' in s, f'escaped test string missing in {p}'
-        for m in re.findall(r'<script type="application/ld\+json">(.*?)</script>',s,re.S):
-            assert '<' not in m and '>' not in m and '&' not in m, f'raw markup in JSON-LD in {p}'
-            data=json.loads(m)
-            if data.get('@type')=='BreadcrumbList':
-                for it in data['itemListElement']:
-                    if it['name']=='NoClaudKit': continue
-                    assert bad in it['name'], f'JSON-LD crumb name mismatch in {p}'
-            else:
-                assert data['name'].endswith(bad), f'JSON-LD name mismatch in {p}'
+    seo_bak,faq_bak=SEO,FAQ
+    SEO=json.loads(json.dumps(SEO))
+    FAQ=json.loads(json.dumps(FAQ))
+    for slug,entry in (SEO.get('ru') or {}).items():
+        if not isinstance(entry,dict): continue
+        for k in ('title','desc'):
+            if isinstance(entry.get(k),str): entry[k]+=bad
+    for slug,items in (FAQ.get('ru') or {}).items():
+        if not isinstance(items,list): continue
+        for x in items:
+            if not isinstance(x,dict): continue
+            for k in ('q','a'):
+                if isinstance(x.get(k),str): x[k]+=bad
+    try:
+        for p,s in render('ru',T).items():
+            assert bad not in s and '<script>alert' not in s, f'unescaped test string in {p}'
+            assert '&lt;script&gt;alert(1)' in s, f'escaped test string missing in {p}'
+            for m in re.findall(r'<script type="application/ld\+json">(.*?)</script>',s,re.S):
+                assert '<' not in m and '>' not in m and '&' not in m, f'raw markup in JSON-LD in {p}'
+                data=json.loads(m)
+                typ=data.get('@type')
+                if typ=='BreadcrumbList':
+                    for it in data['itemListElement']:
+                        if it['name']=='NoClaudKit': continue
+                        assert bad in it['name'], f'JSON-LD crumb name mismatch in {p}'
+                elif typ=='WebApplication':
+                    assert data['name'].endswith(bad), f'JSON-LD name mismatch in {p}'
+                elif typ=='FAQPage':
+                    for q in data.get('mainEntity',[]):
+                        assert bad in q.get('name',''), f'JSON-LD FAQ question mismatch in {p}'
+                        assert bad in q.get('acceptedAnswer',{}).get('text',''), f'JSON-LD FAQ answer mismatch in {p}'
+    finally:
+        SEO,FAQ=seo_bak,faq_bak
 validate_seo_faq_sources()
 selftest()
 check_ru(I18N["ru"])
