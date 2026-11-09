@@ -155,6 +155,58 @@
     "q": "Is it free?",
     "a": "Yes. No registration, no ads, no cookies."
    }
+  ],
+  "png-to-webp": [
+   {
+    "q": "Does PNG to WebP keep transparency?",
+    "a": "Yes. WebP output keeps transparency from PNG. Unlike JPG, transparent areas are not filled with white."
+   },
+   {
+    "q": "Are files uploaded to a server?",
+    "a": "No. Conversion runs in the browser on your device."
+   },
+   {
+    "q": "Why is there a quality slider?",
+    "a": "WebP encoding uses the quality control (default 0.85, range 0.5–1). Lower values make a smaller file with more compression."
+   },
+   {
+    "q": "Can I convert many PNG files at once?",
+    "a": "Yes. Select multiple files. After two or more WebP results, Download ZIP is available."
+   },
+   {
+    "q": "What if WebP will not save in my browser?",
+    "a": "Encoding needs a browser that supports creating WebP (often Chrome, Edge, or Firefox). Safari may not encode WebP — try another browser."
+   },
+   {
+    "q": "Is it free?",
+    "a": "Yes. No signup, no ads, no cookies on the converter page."
+   }
+  ],
+  "jpg-to-webp": [
+   {
+    "q": "How do I convert JPG to WebP?",
+    "a": "Add JPG files, keep WebP as the output, set quality if you want, press Convert, and download the result or a ZIP for multiple files."
+   },
+   {
+    "q": "Will the photo look worse?",
+    "a": "You control compression with the quality slider (default 0.85). Lower values make a smaller WebP with stronger compression."
+   },
+   {
+    "q": "Are my photos uploaded?",
+    "a": "No. Processing stays in the browser on your device."
+   },
+   {
+    "q": "Can I convert a batch of JPG files?",
+    "a": "Yes. Select many files at once. After two or more finished WebP files, you can download a ZIP."
+   },
+   {
+    "q": "Safari will not create WebP. What now?",
+    "a": "WebP encoding must be supported by the browser. Try Chrome, Edge, or Firefox if Safari cannot encode WebP."
+   },
+   {
+    "q": "Is GPS data kept?",
+    "a": "No. EXIF including GPS is not preserved in the output."
+   }
   ]
  },
  "ru": {
@@ -313,6 +365,58 @@
     "q": "Это бесплатно?",
     "a": "Да. Без регистрации, без рекламы и без cookie."
    }
+  ],
+  "png-to-webp": [
+   {
+    "q": "Сохраняется ли прозрачность при PNG в WebP?",
+    "a": "Да. В WebP прозрачность из PNG сохраняется. В отличие от JPG, прозрачные области не заливаются белым."
+   },
+   {
+    "q": "Файлы уходят на сервер?",
+    "a": "Нет. Конвертация идёт в браузере на устройстве."
+   },
+   {
+    "q": "Зачем ползунок качества?",
+    "a": "При сохранении в WebP действует качество (по умолчанию 0,85, диапазон 0,5–1). Ниже значение — меньше файл и сильнее сжатие."
+   },
+   {
+    "q": "Можно ли несколько PNG сразу?",
+    "a": "Да. Выберите несколько файлов. После двух и более готовых WebP доступен ZIP."
+   },
+   {
+    "q": "Что делать, если WebP не сохраняется?",
+    "a": "Нужен браузер с поддержкой кодирования WebP (часто Chrome, Edge или Firefox). Safari может не уметь сохранять WebP — попробуйте другой браузер."
+   },
+   {
+    "q": "Это бесплатно?",
+    "a": "Да. Без регистрации, без рекламы и без cookie на странице конвертера."
+   }
+  ],
+  "jpg-to-webp": [
+   {
+    "q": "Как конвертировать JPG в WebP?",
+    "a": "Добавьте JPG, оставьте выход WebP, при необходимости выставьте качество, нажмите «Конвертировать» и скачайте файл или ZIP для нескольких результатов."
+   },
+   {
+    "q": "Сильно ли ухудшится фото?",
+    "a": "Сжатие задаёт ползунок качества (по умолчанию 0,85). Ниже значение — меньше WebP и сильнее сжатие."
+   },
+   {
+    "q": "Фото уходят на сервер?",
+    "a": "Нет. Обработка в браузере на устройстве."
+   },
+   {
+    "q": "Можно ли пакетом?",
+    "a": "Да. Несколько файлов за раз; ZIP после двух и более готовых WebP."
+   },
+   {
+    "q": "Safari не создаёт WebP. Что делать?",
+    "a": "Нужна поддержка кодирования WebP. Если Safari не умеет, попробуйте Chrome, Edge или Firefox."
+   },
+   {
+    "q": "Остаётся ли GPS из снимка?",
+    "a": "Нет. EXIF, включая GPS, в результат не переносится."
+   }
   ]
  },
  "zh": {
@@ -470,6 +574,58 @@
    {
     "q": "免费吗？",
     "a": "免费。无需注册，无广告无 Cookie。"
+   }
+  ],
+  "png-to-webp": [
+   {
+    "q": "PNG 转 WebP 会保留透明吗？",
+    "a": "会。WebP 可保留 PNG 的透明；不会像 JPG 那样铺白。"
+   },
+   {
+    "q": "文件会上传吗？",
+    "a": "不会。转换在浏览器本地完成。"
+   },
+   {
+    "q": "为什么有质量滑杆？",
+    "a": "编码 WebP 时使用质量（默认 0.85，范围 0.5–1）。越低文件越小、压缩越强。"
+   },
+   {
+    "q": "能一次转很多 PNG 吗？",
+    "a": "可以。多选文件；完成两个及以上 WebP 后可下载 ZIP。"
+   },
+   {
+    "q": "浏览器无法保存 WebP 怎么办？",
+    "a": "需要支持编码 WebP 的浏览器（常见 Chrome、Edge、Firefox）。Safari 可能无法编码，可换浏览器。"
+   },
+   {
+    "q": "免费吗？",
+    "a": "免费。无需注册，工具页无广告、无 Cookie。"
+   }
+  ],
+  "jpg-to-webp": [
+   {
+    "q": "如何将 JPG 转为 WebP？",
+    "a": "添加 JPG，保持输出为 WebP，按需设置质量，点击转换后下载；多文件可下 ZIP。"
+   },
+   {
+    "q": "画质会差很多吗？",
+    "a": "由质量滑杆控制（默认 0.85）。越低体积越小、压缩越强。"
+   },
+   {
+    "q": "照片会上传吗？",
+    "a": "不会。处理在浏览器本地完成。"
+   },
+   {
+    "q": "支持批量吗？",
+    "a": "支持。可一次多选；完成两个及以上 WebP 后可下载 ZIP。"
+   },
+   {
+    "q": "Safari 无法生成 WebP 怎么办？",
+    "a": "需要浏览器支持编码 WebP。若 Safari 不行，可改用 Chrome、Edge 或 Firefox。"
+   },
+   {
+    "q": "会保留 GPS 吗？",
+    "a": "不会。输出不保留含 GPS 的 EXIF。"
    }
   ]
  },
