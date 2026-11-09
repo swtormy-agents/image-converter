@@ -3,8 +3,11 @@
 Translations live in tools/i18n/<lang>.json (keys ending in _html are authored markup, everything else is
 plain text and HTML-escaped here) and tools/i18n/privacy.<lang>.html."""
 # NOTE: only writes the pages listed below; never touches google*.html (Search Console verification file, keep, not in sitemap).
-import re,os,html,json,subprocess,hashlib
-os.chdir(os.path.join(os.path.dirname(__file__),'..'))
+import re,os,html,json,subprocess,hashlib,sys
+_SCRIPT_DIR=os.path.dirname(os.path.abspath(__file__))
+if _SCRIPT_DIR not in sys.path: sys.path.insert(0,_SCRIPT_DIR)
+import lastmod as _lastmod
+os.chdir(os.path.join(_SCRIPT_DIR,'..'))
 BASE='https://noclaudkit.com/image-converter/'
 SITE='https://noclaudkit.com'
 CSP="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
@@ -225,7 +228,9 @@ def foot(T,lang,page):
         (home_path(lang),'NoClaudKit',True),
         (conv_path(lang),T['f_conv'],False),
         (pdf_path(lang),T['ft_pdf'],False),
-        (conv_path(lang)+'heic-to-jpg.html',T['ft_heic'],False),
+    ]
+    tools+=[(conv_path(lang)+f'{a}-to-{b}.html',T['pair_link'].format(A=A,B=B),False) for a,b,A,B,_ in PAIRS]
+    tools+=[
         (pdf_path(lang)+'merge-pdf.html',T['ft_merge'],False),
         (pdf_path(lang)+'split-pdf.html',T['ft_split'],False),
         (pdf_path(lang)+'jpg-to-pdf.html',T['ft_jpgpdf'],False),
@@ -357,21 +362,9 @@ for lang,p in pages:
         assert 'class="editorial"' not in s, f'{loc}: editorial block without seo/faq data'
         assert 'class="faq mt-12"' not in s, f'{loc}: FAQ block without faq data'
         assert '"@type": "FAQPage"' not in s and '"@type":"FAQPage"' not in s, f'{loc}: FAQPage JSON-LD without faq data'
-def sources(l,p):
-    """Content files whose last commit date becomes the page's <lastmod> (never the build date).
-    tools/gen.py is deliberately not a source: template/generator edits must not bump every page's lastmod."""
-    f=[f'tools/i18n/{l}.json','tools/i18n/seo.json','tools/i18n/faq.json']
-    if p=='privacy.html': f.append('privacy.html' if l=='en' else f'tools/i18n/privacy.{l}.html')
-    if p=='licenses.html': f.append('licenses.html')  # en body is embedded in ru/zh licences too
-    return f
-def lastmod(l,p):
-    """Last content edit date among page sources. --no-merges avoids a merge bubble on main changing every lastmod."""
-    args=['git','log','-1','--no-merges','--format=%cs','--',*sources(l,p)]
-    d=subprocess.run(args,capture_output=True,text=True,check=True).stdout.strip()
-    if not d:
-        d=subprocess.run(['git','log','-1','--format=%cs','--',*sources(l,p)],capture_output=True,text=True,check=True).stdout.strip()
-    assert re.fullmatch(r'\d{4}-\d{2}-\d{2}',d), f'no git date for {l}/{p}'
-    return d
+_lastmod.ensure_git_history()
+_lastmod.init_slug_date_tables(LANGS)
+def lastmod(l,p): return _lastmod.lastmod(l,p,LANGS,DOC_PAGES)
 SITEMAP_PAGES=[p for p in PAGES if p not in DOC_PAGES]
 sm_pages=[(l,p) for l,p in pages if p in SITEMAP_PAGES]
 open('sitemap.xml','w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'
