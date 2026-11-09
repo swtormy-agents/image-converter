@@ -225,7 +225,9 @@ def foot(T,lang,page):
         (home_path(lang),'NoClaudKit',True),
         (conv_path(lang),T['f_conv'],False),
         (pdf_path(lang),T['ft_pdf'],False),
-        (conv_path(lang)+'heic-to-jpg.html',T['ft_heic'],False),
+    ]
+    tools+=[(conv_path(lang)+f'{a}-to-{b}.html',T['pair_link'].format(A=A,B=B),False) for a,b,A,B,_ in PAIRS]
+    tools+=[
         (pdf_path(lang)+'merge-pdf.html',T['ft_merge'],False),
         (pdf_path(lang)+'split-pdf.html',T['ft_split'],False),
         (pdf_path(lang)+'jpg-to-pdf.html',T['ft_jpgpdf'],False),
@@ -357,21 +359,37 @@ for lang,p in pages:
         assert 'class="editorial"' not in s, f'{loc}: editorial block without seo/faq data'
         assert 'class="faq mt-12"' not in s, f'{loc}: FAQ block without faq data'
         assert '"@type": "FAQPage"' not in s and '"@type":"FAQPage"' not in s, f'{loc}: FAQPage JSON-LD without faq data'
+_GIT_ENV={**os.environ,'GIT_TERMINAL_PROMPT':'0'}
+def ensure_git_history():
+    shallow=subprocess.run(['git','rev-parse','--is-shallow-repository'],capture_output=True,text=True,check=True,env=_GIT_ENV).stdout.strip()
+    assert shallow=='false', 'refusing sitemap lastmod: git clone is shallow (fetch-depth: 0 or git fetch --unshallow required)'
+def git_last_date(paths,*,grep=None):
+    """Latest commit date touching paths (full history, merges included; grep = per-slug -G pickaxe)."""
+    args=['git','log','-1','--format=%cs']
+    if grep: args+=['-G',grep]
+    args+=['--',*paths]
+    r=subprocess.run(args,capture_output=True,text=True,env=_GIT_ENV,timeout=120)
+    if r.returncode not in(0,128): raise subprocess.CalledProcessError(r.returncode,args,r.stdout,r.stderr)
+    return r.stdout.strip()
 def sources(l,p):
-    """Content files whose last commit date becomes the page's <lastmod> (never the build date).
-    tools/gen.py is deliberately not a source: template/generator edits must not bump every page's lastmod."""
-    f=[f'tools/i18n/{l}.json','tools/i18n/seo.json','tools/i18n/faq.json']
-    if p=='privacy.html': f.append('privacy.html' if l=='en' else f'tools/i18n/privacy.{l}.html')
-    if p=='licenses.html': f.append('licenses.html')  # en body is embedded in ru/zh licences too
-    return f
+    """Content inputs for <lastmod>: shared lang bundle plus pair-specific seo/faq keys when applicable."""
+    slug=p.replace('.html','') if p.endswith('.html') and p not in('index.html',) else None
+    picks=[([f'tools/i18n/{l}.json'],None)]
+    if slug and p not in DOC_PAGES:
+        needle=f'"{slug}"'
+        picks+=([([f'tools/i18n/seo.json'],needle),([f'tools/i18n/faq.json'],needle)])
+    return picks
 def lastmod(l,p):
-    """Last content edit date among page sources. --no-merges avoids a merge bubble on main changing every lastmod."""
-    args=['git','log','-1','--no-merges','--format=%cs','--',*sources(l,p)]
-    d=subprocess.run(args,capture_output=True,text=True,check=True).stdout.strip()
-    if not d:
-        d=subprocess.run(['git','log','-1','--format=%cs','--',*sources(l,p)],capture_output=True,text=True,check=True).stdout.strip()
-    assert re.fullmatch(r'\d{4}-\d{2}-\d{2}',d), f'no git date for {l}/{p}'
+    """Max commit date across page sources (reachable via merges, not --no-merges)."""
+    dates=[]
+    for paths,grep in sources(l,p):
+        d=git_last_date(paths,grep=grep)
+        if d: dates.append(d)
+    assert dates, f'no git date for {l}/{p}'
+    d=max(dates)
+    assert re.fullmatch(r'\d{4}-\d{2}-\d{2}',d), f'bad git date for {l}/{p}: {d!r}'
     return d
+ensure_git_history()
 SITEMAP_PAGES=[p for p in PAGES if p not in DOC_PAGES]
 sm_pages=[(l,p) for l,p in pages if p in SITEMAP_PAGES]
 open('sitemap.xml','w').write('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n'

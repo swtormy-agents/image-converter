@@ -238,16 +238,25 @@ def crumbs_nav(doc):
     return None
 
 
+PAIR_AB = {'heic': 'HEIC', 'jpg': 'JPG', 'png': 'PNG', 'webp': 'WebP', 'avif': 'AVIF'}
+
+
 def expected_tools(lang):
-    return [
+    T = I18N[lang]
+    out = [
         (home_path(lang), 'NoClaudKit'),
-        (conv_path(lang), I18N[lang]['f_conv']),
-        (pdf_path(lang), I18N[lang]['ft_pdf']),
-        (conv_path(lang) + 'heic-to-jpg.html', I18N[lang]['ft_heic']),
-        (pdf_path(lang) + 'merge-pdf.html', I18N[lang]['ft_merge']),
-        (pdf_path(lang) + 'split-pdf.html', I18N[lang]['ft_split']),
-        (pdf_path(lang) + 'jpg-to-pdf.html', I18N[lang]['ft_jpgpdf']),
+        (conv_path(lang), T['f_conv']),
+        (pdf_path(lang), T['ft_pdf']),
     ]
+    for a, b in PAIRS:
+        A, B = PAIR_AB[a], PAIR_AB[b]
+        out.append((conv_path(lang) + f'{a}-to-{b}.html', T['pair_link'].format(A=A, B=B)))
+    out += [
+        (pdf_path(lang) + 'merge-pdf.html', T['ft_merge']),
+        (pdf_path(lang) + 'split-pdf.html', T['ft_split']),
+        (pdf_path(lang) + 'jpg-to-pdf.html', T['ft_jpgpdf']),
+    ]
+    return out
 
 
 def visible_text_nodes(src, selector_start):
@@ -298,7 +307,7 @@ def check_page(lang, page, src, doc):
         hrefs = [(a['href'], norm(a['text'])) for a in ft['links']]
         exp = [(h, norm(t)) for h, t in expected_tools(lang)]
         if hrefs != exp:
-            fail(1, f'{loc}: footer 7 links {hrefs!r} != {exp!r}')
+            fail(1, f'{loc}: footer tools {hrefs!r} != {exp!r}')
         if not any(a['href'] == home_path(lang) for a in ft['links']):
             fail(1, f'{loc}: no same-language home link')
         # current page stays <a aria-current="page">
