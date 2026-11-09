@@ -1,6 +1,477 @@
 {
- "en": {},
- "ru": {},
- "zh": {},
+ "en": {
+  "heic-to-jpg": [
+   {
+    "q": "Are my photos uploaded to a server?",
+    "a": "No. Conversion runs in the browser on your device. Images are not sent to a server."
+   },
+   {
+    "q": "Is it free? Do I need an account?",
+    "a": "Free. No signup. The converter page has no ads and no cookies."
+   },
+   {
+    "q": "Why did I only get one photo from a Live Photo / burst HEIC?",
+    "a": "Multi-image HEIC files yield only the first image. EXIF is not kept."
+   },
+   {
+    "q": "Are JPG and JPEG different?",
+    "a": "No. They are the same format; only the extension spelling differs. This page saves JPEG/JPG."
+   },
+   {
+    "q": "What if HEIC will not open?",
+    "a": "The site can load a local libheif WebAssembly decoder when the browser cannot open HEIC. Wait for the first load, or try another browser. Safari on iPhone is not fully tested yet."
+   },
+   {
+    "q": "Can I convert many files at once?",
+    "a": "Yes. Select multiple files. After two or more are converted, use Download ZIP."
+   }
+  ],
+  "avif-to-jpg": [
+   {
+    "q": "I searched “AVI to JPG”. Is this the right tool?",
+    "a": "If you have an .avif image, yes. AVI is video; this page converts AVIF images to JPG only."
+   },
+   {
+    "q": "Do files leave my computer?",
+    "a": "No. Processing stays in the browser. Images are not uploaded."
+   },
+   {
+    "q": "Can I convert a folder of AVIF files?",
+    "a": "You can select multiple files in one go. With two or more finished JPGs, Download ZIP becomes available."
+   },
+   {
+    "q": "Why did transparency disappear?",
+    "a": "JPEG has no alpha channel. Transparent areas become white. Choose PNG on this page or open AVIF to PNG."
+   },
+   {
+    "q": "AVIF will not open in my browser. What next?",
+    "a": "The browser itself decodes AVIF. Update it or try Chrome/Firefox."
+   },
+   {
+    "q": "Is the converter free?",
+    "a": "Yes. No registration, no ads, no cookies on the tool page."
+   }
+  ],
+  "webp-to-jpg": [
+   {
+    "q": "I searched “web to jpg” / “webp to jpeg” — is this it?",
+    "a": "Yes, for .webp image files. This page converts WebP to JPG in the browser."
+   },
+   {
+    "q": "Are files uploaded?",
+    "a": "No. Conversion runs on your device in the browser."
+   },
+   {
+    "q": "Can I convert many WebP files at once?",
+    "a": "Yes. Select multiple files. After two or more JPGs are ready, Download ZIP is available."
+   },
+   {
+    "q": "Why did transparency disappear?",
+    "a": "JPG has no alpha. Transparent areas are filled with white. Use WebP to PNG to keep transparency."
+   },
+   {
+    "q": "Is it free?",
+    "a": "Yes. No account, no ads, no cookies on the converter page."
+   },
+   {
+    "q": "What JPEG quality should I use?",
+    "a": "Default is 0.85. The slider runs from 0.5 to 1: lower means a smaller file and more compression."
+   }
+  ],
+  "heic-to-png": [
+   {
+    "q": "Is this the page for “convert HEIC to PNG”?",
+    "a": "Yes. HEIC/HEIF becomes PNG in the browser with no upload."
+   },
+   {
+    "q": "Why is the quality slider disabled?",
+    "a": "PNG is lossless; quality does not apply. The slider is for JPEG and WebP outputs."
+   },
+   {
+    "q": "Is transparency kept?",
+    "a": "PNG supports transparency. Unlike JPG, transparent areas are not filled with white."
+   },
+   {
+    "q": "Why only one image from my HEIC?",
+    "a": "Only the first image in a multi-image HEIC is converted. EXIF is not kept."
+   },
+   {
+    "q": "Do files leave my device?",
+    "a": "No. Processing stays in the browser."
+   },
+   {
+    "q": "Is it free?",
+    "a": "Yes. No account, no ads, no cookies."
+   }
+  ],
+  "avif-to-png": [
+   {
+    "q": "Does this cover “AVIF to PNG” / “convert AVIF to PNG”?",
+    "a": "Yes. AVIF images become PNG in the browser without uploading."
+   },
+   {
+    "q": "Is this AVI to PNG?",
+    "a": "No. AVI is video. This page converts .avif images only."
+   },
+   {
+    "q": "Will transparency survive?",
+    "a": "PNG supports transparency. There is no white fill like JPEG uses."
+   },
+   {
+    "q": "Can I convert several files?",
+    "a": "Yes. ZIP unlocks after two or more successful conversions."
+   },
+   {
+    "q": "AVIF will not open. What should I do?",
+    "a": "The browser decodes AVIF. Update it or try another browser."
+   },
+   {
+    "q": "Is it free?",
+    "a": "Yes. No registration, no ads, no cookies."
+   }
+  ],
+  "webp-to-png": [
+   {
+    "q": "Is this for “WebP to PNG”?",
+    "a": "Yes. WebP becomes PNG in the browser with no upload."
+   },
+   {
+    "q": "Is the transparent background kept?",
+    "a": "Yes. PNG supports transparency; unlike JPG, alpha is not filled with white."
+   },
+   {
+    "q": "Why is quality locked?",
+    "a": "PNG is lossless; quality does not apply. The slider is for JPEG and WebP."
+   },
+   {
+    "q": "Batch conversion?",
+    "a": "Yes. Multiple files at once; ZIP after two or more finished PNGs."
+   },
+   {
+    "q": "Are files uploaded?",
+    "a": "No. Everything runs locally in the browser."
+   },
+   {
+    "q": "Is it free?",
+    "a": "Yes. No registration, no ads, no cookies."
+   }
+  ]
+ },
+ "ru": {
+  "heic-to-jpg": [
+   {
+    "q": "Файлы загружаются на сервер?",
+    "a": "Нет. Конвертация выполняется в браузере на вашем устройстве; на сервер изображение не отправляется."
+   },
+   {
+    "q": "Это бесплатно? Нужна регистрация?",
+    "a": "Да, бесплатно. Аккаунт и регистрация не требуются. Рекламы и cookie на странице нет."
+   },
+   {
+    "q": "Чем HEIC отличается от HEVC и что делать с «хеик в джпг»?",
+    "a": "HEIC/HEIF — контейнер фото. HEVC чаще про видео. Запросы вроде «хеик», «хейк» или «hevc в jpg» обычно про файл `.heic` с iPhone — его и принимает эта страница."
+   },
+   {
+    "q": "JPG и JPEG — это разные форматы?",
+    "a": "Нет. JPG и JPEG — один формат; отличаются только написание расширения. На странице результат сохраняется как JPEG/JPG."
+   },
+   {
+    "q": "Почему из Live Photo или «стопки» получилось одно фото?",
+    "a": "Из HEIC с несколькими изображениями берётся только первое. EXIF при этом не сохраняется."
+   },
+   {
+    "q": "Работает ли конвертер на телефоне?",
+    "a": "Да, в мобильном браузере. Выберите HEIC из галереи и скачайте JPG. На iPhone в Safari проверка ещё неполная; если файл не открылся, попробуйте другой браузер."
+   }
+  ],
+  "avif-to-jpg": [
+   {
+    "q": "Я искал «AVI в JPG» — это эта страница?",
+    "a": "Скорее всего да, если речь о картинке `.avif`. AVI — видеоформат; эта страница конвертирует изображения AVIF в JPG, а не видео AVI."
+   },
+   {
+    "q": "Уходят ли мои файлы на сервер?",
+    "a": "Нет. Обработка идёт в браузере на устройстве. На сервер изображение не загружается."
+   },
+   {
+    "q": "Можно ли конвертировать несколько AVIF сразу?",
+    "a": "Да. Выберите несколько файлов. Если готовых JPG два и больше, доступна кнопка «Скачать ZIP»."
+   },
+   {
+    "q": "Почему пропала прозрачность?",
+    "a": "В JPG прозрачности нет. При сохранении в JPEG прозрачные области заливаются белым. Для прозрачности выберите PNG на этой же странице или откройте «AVIF в PNG»."
+   },
+   {
+    "q": "Что делать, если AVIF не открывается?",
+    "a": "AVIF открывает сам браузер. Обновите его или попробуйте Chrome либо Firefox."
+   },
+   {
+    "q": "Это бесплатно?",
+    "a": "Да. Без регистрации, без рекламы и без cookie на странице конвертера."
+   }
+  ],
+  "webp-to-jpg": [
+   {
+    "q": "Я искал «вебп в джипег» или «web в jpg» — это сюда?",
+    "a": "Да, если файл с расширением `.webp`. Страница конвертирует WebP в JPG в браузере."
+   },
+   {
+    "q": "Файлы уходят на сервер?",
+    "a": "Нет. Обработка идёт на устройстве, изображение на сервер не отправляется."
+   },
+   {
+    "q": "Можно ли сразу много WebP?",
+    "a": "Да. Выберите несколько файлов. После двух и более готовых JPG можно скачать ZIP."
+   },
+   {
+    "q": "Почему пропала прозрачность у WebP?",
+    "a": "В JPG прозрачности нет: такие области заливаются белым. Для прозрачности используйте «WebP в PNG» или выберите PNG в списке форматов."
+   },
+   {
+    "q": "Это бесплатно?",
+    "a": "Да. Без регистрации, без рекламы и без cookie на странице."
+   },
+   {
+    "q": "Какое качество JPEG ставить?",
+    "a": "По умолчанию 0,85. Ползунок от 0,5 до 1: ниже — меньше файл и больше сжатие, выше — крупнее и ближе к исходнику."
+   }
+  ],
+  "heic-to-png": [
+   {
+    "q": "Искал «конвертировать heic в png» — верная страница?",
+    "a": "Да. Здесь HEIC/HEIF переводится в PNG в браузере, без загрузки на сервер."
+   },
+   {
+    "q": "Почему нельзя крутить качество?",
+    "a": "Для PNG качество не применяется: формат сжимает без потерь. Ползунок активен для JPEG и WebP."
+   },
+   {
+    "q": "Сохранится ли прозрачность?",
+    "a": "PNG поддерживает прозрачность. В отличие от JPG, альфа-канал при сохранении в PNG не затирается белым."
+   },
+   {
+    "q": "Почему из HEIC вышла только одна картинка?",
+    "a": "Из файла с несколькими изображениями берётся только первое. EXIF не сохраняется."
+   },
+   {
+    "q": "Файлы уходят на сервер?",
+    "a": "Нет. Конвертация на устройстве в браузере."
+   },
+   {
+    "q": "Это бесплатно?",
+    "a": "Да. Без аккаунта, без рекламы и без cookie."
+   }
+  ],
+  "avif-to-png": [
+   {
+    "q": "Подходит ли страница для запроса «перевести avif в png»?",
+    "a": "Да. Здесь изображения AVIF сохраняются в PNG в браузере, без загрузки на сервер."
+   },
+   {
+    "q": "Это то же самое, что AVI в PNG?",
+    "a": "Нет. AVI — видео. Инструмент работает с файлами `.avif` (картинки), не с видео AVI."
+   },
+   {
+    "q": "Прозрачность сохранится?",
+    "a": "PNG умеет прозрачность. При сохранении в PNG белая заливка, как у JPEG, не применяется."
+   },
+   {
+    "q": "Можно ли несколько файлов сразу?",
+    "a": "Да. После двух и более успешных конвертаций доступен ZIP."
+   },
+   {
+    "q": "Почему AVIF не открывается?",
+    "a": "Его открывает браузер. Обновите браузер или попробуйте другой."
+   },
+   {
+    "q": "Это бесплатно?",
+    "a": "Да. Без регистрации, без рекламы и без cookie."
+   }
+  ],
+  "webp-to-png": [
+   {
+    "q": "Искал «вебп в пнг» / «из веб в пнг» — это здесь?",
+    "a": "Да. Страница переводит WebP в PNG в браузере без загрузки на сервер."
+   },
+   {
+    "q": "Сохранится ли прозрачный фон?",
+    "a": "Да, PNG поддерживает прозрачность. В отличие от JPG, альфа не затирается белым."
+   },
+   {
+    "q": "Почему не крутится качество?",
+    "a": "Для PNG качество не применяется — сжатие без потерь. Ползунок нужен для JPEG и WebP."
+   },
+   {
+    "q": "Можно ли пакетно?",
+    "a": "Да. Несколько файлов за раз; ZIP после двух и более готовых PNG."
+   },
+   {
+    "q": "Файлы на сервер уходят?",
+    "a": "Нет. Всё выполняется локально в браузере."
+   },
+   {
+    "q": "Это бесплатно?",
+    "a": "Да. Без регистрации, без рекламы и без cookie."
+   }
+  ]
+ },
+ "zh": {
+  "heic-to-jpg": [
+   {
+    "q": "照片会上传到服务器吗？",
+    "a": "不会。转换在浏览器本地完成，图片不发送到服务器。"
+   },
+   {
+    "q": "免费吗？要注册吗？",
+    "a": "免费，无需账号。转换页无广告、无 Cookie。"
+   },
+   {
+    "q": "为什么 Live Photo / 连拍 HEIC 只得到一张图？",
+    "a": "多图 HEIC 只转换第一张，且不保留 EXIF。"
+   },
+   {
+    "q": "JPG 和 JPEG 有区别吗？",
+    "a": "没有，是同一格式，只是扩展名写法不同。本页输出为 JPEG/JPG。"
+   },
+   {
+    "q": "HEIC 打不开怎么办？",
+    "a": "浏览器无法打开时，本站可加载本地 libheif WebAssembly 解码器。请等待首次加载，或换浏览器。iPhone 上的 Safari 尚未完整测试。"
+   },
+   {
+    "q": "能一次转很多张吗？",
+    "a": "可以多选。成功转换两个及以上后，可下载 ZIP。"
+   }
+  ],
+  "avif-to-jpg": [
+   {
+    "q": "我搜的是「AVI 转 JPG」，这个对吗？",
+    "a": "若文件是 .avif 图片，就对。AVI 是视频；本页只把 AVIF 图片转为 JPG。"
+   },
+   {
+    "q": "文件会离开本机吗？",
+    "a": "不会。处理在浏览器内完成，不上传。"
+   },
+   {
+    "q": "能一次转很多 AVIF 吗？",
+    "a": "可以一次多选。完成两个及以上 JPG 后可下载 ZIP。"
+   },
+   {
+    "q": "为什么透明没了？",
+    "a": "JPEG 没有透明通道，透明区会变白。可在本页改选 PNG，或打开「AVIF 转 PNG」。"
+   },
+   {
+    "q": "AVIF 打不开怎么办？",
+    "a": "由浏览器自己解码 AVIF。请更新浏览器或改用 Chrome/Firefox。"
+   },
+   {
+    "q": "收费吗？",
+    "a": "不收费。无需注册，转换页无广告、无 Cookie。"
+   }
+  ],
+  "webp-to-jpg": [
+   {
+    "q": "搜「web to jpg」/「webp to jpeg」是这里吗？",
+    "a": "是，针对 .webp 图片。本页在浏览器中把 WebP 转为 JPG。"
+   },
+   {
+    "q": "会上传文件吗？",
+    "a": "不会。转换在设备本地浏览器中完成。"
+   },
+   {
+    "q": "能一次转很多张吗？",
+    "a": "可以。多选文件；完成两个及以上 JPG 后可下载 ZIP。"
+   },
+   {
+    "q": "为什么透明没了？",
+    "a": "JPG 没有透明通道，透明区会铺白。要保留透明请用「WebP 转 PNG」。"
+   },
+   {
+    "q": "免费吗？",
+    "a": "免费。无需账号，转换页无广告、无 Cookie。"
+   },
+   {
+    "q": "JPEG 质量怎么选？",
+    "a": "默认 0.85。滑杆 0.5–1：越低文件越小、压缩越强。"
+   }
+  ],
+  "heic-to-png": [
+   {
+    "q": "「HEIC 转 PNG」是这一页吗？",
+    "a": "是。在浏览器中将 HEIC/HEIF 转为 PNG，不上传。"
+   },
+   {
+    "q": "为什么不能调质量？",
+    "a": "PNG 无损，不适用质量滑杆。滑杆用于 JPEG 和 WebP。"
+   },
+   {
+    "q": "透明会保留吗？",
+    "a": "会。PNG 支持透明；不会像 JPG 那样铺白。"
+   },
+   {
+    "q": "为什么 HEIC 只出来一张？",
+    "a": "多图 HEIC 只转换第一张，且不保留 EXIF。"
+   },
+   {
+    "q": "文件会离开设备吗？",
+    "a": "不会。处理在浏览器本地完成。"
+   },
+   {
+    "q": "免费吗？",
+    "a": "免费。无需账号，无广告无 Cookie。"
+   }
+  ],
+  "avif-to-png": [
+   {
+    "q": "「AVIF 转 PNG」是这里吗？",
+    "a": "是。在浏览器中将 AVIF 转为 PNG，不上传。"
+   },
+   {
+    "q": "这是 AVI 转 PNG 吗？",
+    "a": "不是。AVI 是视频。本页只转换 .avif 图片。"
+   },
+   {
+    "q": "透明会保留吗？",
+    "a": "会。PNG 支持透明，不会像 JPEG 那样铺白。"
+   },
+   {
+    "q": "能一次转多张吗？",
+    "a": "可以。完成两个及以上后可下载 ZIP。"
+   },
+   {
+    "q": "AVIF 打不开怎么办？",
+    "a": "由浏览器解码。请更新浏览器或换用其他浏览器。"
+   },
+   {
+    "q": "免费吗？",
+    "a": "免费。无需注册，无广告无 Cookie。"
+   }
+  ],
+  "webp-to-png": [
+   {
+    "q": "「WebP 转 PNG」是这一页吗？",
+    "a": "是。在浏览器中将 WebP 转为 PNG，不上传。"
+   },
+   {
+    "q": "透明背景会保留吗？",
+    "a": "会。PNG 支持透明；不会像 JPG 那样铺白。"
+   },
+   {
+    "q": "为什么不能调质量？",
+    "a": "PNG 无损，不适用质量。滑杆用于 JPEG 和 WebP。"
+   },
+   {
+    "q": "支持批量吗？",
+    "a": "支持。可多选；完成两个及以上 PNG 后可下载 ZIP。"
+   },
+   {
+    "q": "会上传吗？",
+    "a": "不会。全部在浏览器本地完成。"
+   },
+   {
+    "q": "免费吗？",
+    "a": "免费。无需注册，无广告无 Cookie。"
+   }
+  ]
+ },
  "_doc": "Per conversion pair slug (e.g. heic-to-jpg), value is an array of { \"q\": \"question\", \"a\": \"answer\" }. Plain text in answers; optional markdown links [label](https://noclaudkit.com/...) or [/relative/path] rendered as <a> in HTML and plain label in FAQPage JSON-LD. Missing slug or empty array: no FAQ section and no FAQPage JSON-LD."
 }
