@@ -50,6 +50,10 @@
    {
     "q": "Is the converter free?",
     "a": "Yes. No registration, no ads, no cookies on the tool page."
+   },
+   {
+    "q": "Is “AVI to JPG” actually about AVIF?",
+    "a": "AVI is a video format, and this tool does not open it. If your file ends with .avif (often typed as “avi”), it is an image and converts here."
    }
   ],
   "webp-to-jpg": [
@@ -119,7 +123,7 @@
    },
    {
     "q": "Can I convert several files?",
-    "a": "Yes. ZIP unlocks after two or more successful conversions."
+    "a": "Yes. A ZIP download is available after two or more successful conversions."
    },
    {
     "q": "AVIF will not open. What should I do?",
@@ -128,6 +132,10 @@
    {
     "q": "Is it free?",
     "a": "Yes. No registration, no ads, no cookies."
+   },
+   {
+    "q": "Is “AVI to PNG” actually about AVIF?",
+    "a": "AVI is a video format, and this tool does not open it. If your file ends with .avif (often typed as “avi”), it is an image and can be saved as PNG here."
    }
   ],
   "webp-to-png": [
@@ -260,6 +268,10 @@
    {
     "q": "Это бесплатно?",
     "a": "Да. Без регистрации, без рекламы и без cookie на странице конвертера."
+   },
+   {
+    "q": "Конвертировать AVI в JPG — это про AVIF?",
+    "a": "AVI — формат видео, этот инструмент его не открывает. Если файл заканчивается на .avif (часто пишут «avi» или «авиф»), это картинка, и её можно конвертировать здесь."
    }
   ],
   "webp-to-jpg": [
@@ -338,6 +350,10 @@
    {
     "q": "Это бесплатно?",
     "a": "Да. Без регистрации, без рекламы и без cookie."
+   },
+   {
+    "q": "Конвертировать AVI в PNG — это про AVIF?",
+    "a": "AVI — формат видео, этот инструмент его не открывает. Если файл заканчивается на .avif (часто пишут «avi» или «авиф»), это картинка, и её можно сохранить в PNG здесь."
    }
   ],
   "webp-to-png": [
@@ -470,6 +486,10 @@
    {
     "q": "收费吗？",
     "a": "不收费。无需注册，转换页无广告、无 Cookie。"
+   },
+   {
+    "q": "搜「AVI 转 JPG」是指 AVIF 吗？",
+    "a": "AVI 是视频格式，本工具打不开。如果文件扩展名是 .avif（常被写成 avi），那是图片，可以在这里转为 JPG。"
    }
   ],
   "webp-to-jpg": [
@@ -548,6 +568,10 @@
    {
     "q": "免费吗？",
     "a": "免费。无需注册，无广告无 Cookie。"
+   },
+   {
+    "q": "搜「AVI 转 PNG」是指 AVIF 吗？",
+    "a": "AVI 是视频格式，本工具打不开。如果文件扩展名是 .avif（常被写成 avi），那是图片，可以在这里转为 PNG。"
    }
   ],
   "webp-to-png": [
